@@ -62,7 +62,11 @@ export function ExecutiveOverview({
   }[lang];
 
   const cards = [
-    { label: copy.achievement, value: `${achievement.toFixed(1)}%`, detail: `${formatNumber(totalActual)} / ${formatNumber(totalPlanned)} ${tonLabel}` },
+    {
+      label: copy.achievement,
+      value: `${achievement.toFixed(1)}%`,
+      detail: `${formatNumber(totalActual)} / ${formatNumber(totalPlanned)} ${tonLabel}`,
+    },
     { label: copy.galvanized, value: formatNumber(galvanized), detail: tonLabel },
     { label: copy.sold, value: formatNumber(sold), detail: tonLabel },
     { label: copy.ready, value: formatNumber(readyToShip), detail: tonLabel },
@@ -70,15 +74,25 @@ export function ExecutiveOverview({
 
   return (
     <section className="space-y-4" aria-labelledby="executive-overview-title">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 id="executive-overview-title" className="text-xl font-semibold tracking-tight md:text-2xl">
-            {copy.title}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{copy.subtitle}</p>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card p-5 shadow-[var(--shadow-card)]">
+        <div className="flex items-center gap-4">
+          <img
+            src="/aka-logo.svg"
+            alt="AKA"
+            className="h-14 w-auto shrink-0 rounded-xl bg-white px-2 py-1 shadow-sm print:h-11"
+          />
+          <div>
+            <h2 id="executive-overview-title" className="text-xl font-semibold tracking-tight md:text-2xl">
+              {copy.title}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">{copy.subtitle}</p>
+          </div>
         </div>
-        <div className="rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground shadow-sm">
-          {copy.inventory}: <strong className="text-foreground">{formatNumber(finishedInventory)} {tonLabel}</strong>
+        <div className="rounded-full border border-border bg-secondary/40 px-3 py-1.5 text-xs text-muted-foreground">
+          {copy.inventory}:{" "}
+          <strong className="text-foreground">
+            {formatNumber(finishedInventory)} {tonLabel}
+          </strong>
         </div>
       </div>
 
@@ -91,7 +105,15 @@ export function ExecutiveOverview({
             }`}
           >
             <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
-            <p className={`mt-3 text-3xl font-semibold tabular-nums ${index === 2 ? "text-emerald-600" : index === 3 ? "text-amber-600" : "text-primary"}`}>
+            <p
+              className={`mt-3 text-3xl font-semibold tabular-nums ${
+                index === 2
+                  ? "text-emerald-600"
+                  : index === 3
+                    ? "text-amber-600"
+                    : "text-primary"
+              }`}
+            >
               {card.value}
             </p>
             <p className="mt-1 text-xs text-muted-foreground">{card.detail}</p>
@@ -100,7 +122,9 @@ export function ExecutiveOverview({
       </div>
 
       <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 p-5">
-        <p className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">{copy.issue}</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
+          {copy.issue}
+        </p>
         <p className="mt-2 text-sm leading-7 text-foreground">{copy.issueText}</p>
       </div>
     </section>
