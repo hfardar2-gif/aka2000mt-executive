@@ -4,34 +4,16 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Design system definition.
- *
- * The @theme inline block maps CSS custom properties to Tailwind utility
- * classes (e.g. --color-primary -> bg-primary, text-primary).
- *
- * The :root and .dark blocks define the actual color values using oklch.
- * All colors MUST use oklch format.
- *
- * To add a new semantic color:
- * 1. Add the variable to :root (light value) and .dark (dark value)
- * 2. Register it in @theme inline as --color-<name>: var(--<name>)
- */
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -45,144 +27,94 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-ring-offset-background: var(--background);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 :root {
-  --radius: 0.625rem;
-  /* Industrial steel-mill palette: deep navy base, amber/molten accent */
-  --background: oklch(0.16 0.02 250);
-  --foreground: oklch(0.96 0.01 90);
-  --card: oklch(0.21 0.025 250);
-  --card-foreground: oklch(0.96 0.01 90);
-  --popover: oklch(0.21 0.025 250);
-  --popover-foreground: oklch(0.96 0.01 90);
-  --primary: oklch(0.78 0.17 65);
-  --primary-foreground: oklch(0.16 0.02 250);
-  --secondary: oklch(0.28 0.03 250);
-  --secondary-foreground: oklch(0.96 0.01 90);
-  --muted: oklch(0.25 0.025 250);
-  --muted-foreground: oklch(0.7 0.02 250);
-  --accent: oklch(0.62 0.16 35);
-  --accent-foreground: oklch(0.98 0.01 90);
-  --destructive: oklch(0.6 0.22 27);
-  --destructive-foreground: oklch(0.98 0.01 90);
-  --border: oklch(0.3 0.03 250);
-  --input: oklch(0.3 0.03 250);
-  --ring: oklch(0.78 0.17 65);
-  --chart-1: oklch(0.78 0.17 65);
-  --chart-2: oklch(0.7 0.14 200);
-  --chart-3: oklch(0.62 0.16 35);
-  --chart-4: oklch(0.72 0.15 150);
-  --chart-5: oklch(0.65 0.18 300);
-  --gradient-hero: linear-gradient(135deg, oklch(0.22 0.03 250) 0%, oklch(0.16 0.02 250) 60%, oklch(0.18 0.04 35 / 0.4) 100%);
-  --gradient-primary: linear-gradient(135deg, oklch(0.78 0.17 65), oklch(0.62 0.16 35));
-  --shadow-glow: 0 0 40px -10px oklch(0.78 0.17 65 / 0.4);
-  --shadow-card: 0 8px 32px -12px oklch(0.05 0 0 / 0.5);
-  --sidebar: oklch(0.984 0.003 247.858);
-  --sidebar-foreground: oklch(0.129 0.042 264.695);
-  --sidebar-primary: oklch(0.208 0.042 265.755);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.968 0.007 247.896);
-  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
-  --sidebar-border: oklch(0.929 0.013 255.508);
-  --sidebar-ring: oklch(0.704 0.04 256.788);
-}
-
-.light {
+  --radius: 0.75rem;
   --background: oklch(0.98 0.005 250);
   --foreground: oklch(0.18 0.02 250);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.18 0.02 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.02 250);
-  --primary: oklch(0.62 0.17 50);
-  --primary-foreground: oklch(0.98 0.01 90);
-  --secondary: oklch(0.94 0.01 250);
-  --secondary-foreground: oklch(0.2 0.02 250);
-  --muted: oklch(0.95 0.008 250);
-  --muted-foreground: oklch(0.45 0.02 250);
-  --accent: oklch(0.62 0.16 35);
-  --accent-foreground: oklch(0.98 0.01 90);
-  --destructive: oklch(0.55 0.22 27);
-  --destructive-foreground: oklch(0.98 0.01 90);
-  --border: oklch(0.88 0.01 250);
-  --input: oklch(0.88 0.01 250);
-  --ring: oklch(0.62 0.17 50);
-  --gradient-hero: linear-gradient(135deg, oklch(0.97 0.01 250) 0%, oklch(0.94 0.02 250) 60%, oklch(0.9 0.05 50 / 0.3) 100%);
+  --primary: oklch(0.36 0.09 245);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.95 0.012 245);
+  --secondary-foreground: oklch(0.22 0.03 245);
+  --muted: oklch(0.95 0.008 245);
+  --muted-foreground: oklch(0.48 0.025 245);
+  --accent: oklch(0.68 0.15 65);
+  --accent-foreground: oklch(0.2 0.02 245);
+  --destructive: oklch(0.56 0.2 28);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.89 0.012 245);
+  --input: oklch(0.89 0.012 245);
+  --ring: oklch(0.54 0.12 235);
+  --chart-1: oklch(0.43 0.11 245);
+  --chart-2: oklch(0.62 0.13 215);
+  --chart-3: oklch(0.7 0.15 65);
+  --chart-4: oklch(0.58 0.12 155);
+  --chart-5: oklch(0.62 0.12 300);
+}
+
+.dark {
+  --background: oklch(0.16 0.02 250);
+  --foreground: oklch(0.96 0.01 90);
+  --card: oklch(0.21 0.025 250);
+  --card-foreground: oklch(0.96 0.01 90);
+  --primary: oklch(0.72 0.13 215);
+  --primary-foreground: oklch(0.15 0.02 250);
+  --secondary: oklch(0.28 0.03 250);
+  --secondary-foreground: oklch(0.96 0.01 90);
+  --muted: oklch(0.25 0.025 250);
+  --muted-foreground: oklch(0.7 0.02 250);
+  --accent: oklch(0.7 0.15 65);
+  --accent-foreground: oklch(0.15 0.02 250);
+  --destructive: oklch(0.65 0.2 28);
+  --destructive-foreground: oklch(0.98 0 0);
+  --border: oklch(0.3 0.03 250);
+  --input: oklch(0.3 0.03 250);
+  --ring: oklch(0.72 0.13 215);
+}
+
+@layer base {
+  * { border-color: var(--color-border); }
+  html { background: #ffffff; }
+  body {
+    margin: 0;
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: Inter, "Noto Sans SC", "Microsoft YaHei", Vazirmatn, Tahoma, Arial, sans-serif;
+  }
+  body::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 82px;
+    border-bottom: 1px solid #d9e0e8;
+    background-color: #ffffff;
+    background-image: url("data:image/webp;base64,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");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: auto 62px;
+  }
+}
+
+@media (max-width: 640px) {
+  body::before { height: 68px; background-size: auto 50px; }
 }
 
 @media print {
   .no-print { display: none !important; }
   @page { size: A4; margin: 12mm; }
-  html, body {
-    background: white !important;
-    color: black !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
+  html, body { background: white !important; color: black !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body::before { height: 58px; background-size: auto 46px; border: 0; }
   .sticky { position: static !important; }
   main, header, section, footer, table { break-inside: avoid; page-break-inside: avoid; }
   section, .rounded-2xl { box-shadow: none !important; }
   a { text-decoration: none !important; color: inherit !important; }
   .recharts-wrapper, svg { max-width: 100% !important; }
-}
-
-.dark {
-  --background: oklch(0.129 0.042 264.695);
-  --foreground: oklch(0.984 0.003 247.858);
-  --card: oklch(0.208 0.042 265.755);
-  --card-foreground: oklch(0.984 0.003 247.858);
-  --popover: oklch(0.208 0.042 265.755);
-  --popover-foreground: oklch(0.984 0.003 247.858);
-  --primary: oklch(0.929 0.013 255.508);
-  --primary-foreground: oklch(0.208 0.042 265.755);
-  --secondary: oklch(0.279 0.041 260.031);
-  --secondary-foreground: oklch(0.984 0.003 247.858);
-  --muted: oklch(0.279 0.041 260.031);
-  --muted-foreground: oklch(0.704 0.04 256.788);
-  --accent: oklch(0.279 0.041 260.031);
-  --accent-foreground: oklch(0.984 0.003 247.858);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.984 0.003 247.858);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.551 0.027 264.364);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.208 0.042 265.755);
-  --sidebar-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-accent: oklch(0.279 0.041 260.031);
-  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.551 0.027 264.364);
-}
-
-@layer base {
-  * {
-    border-color: var(--color-border);
-  }
-
-  body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
-  }
 }
