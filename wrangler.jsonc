@@ -1,9 +1,19 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "aka2000mt-executive",
-  "compatibility_date": "2026-07-12",
+  "name": "aka2000mt",
+  "compatibility_date": "2026-07-14",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "dist/server/index.mjs",
-  "assets": { "directory": "dist/client" },
-  "observability": { "enabled": true }
+  "main": "dist/server/server.js",
+  "keep_vars": true,
+  "vars": {
+    "GITHUB_OWNER": "hfardar2-gif",
+    "GITHUB_REPO": "aka2000mt",
+    "GITHUB_BRANCH": "main"
+  },
+  "assets": {
+    "directory": "dist/client"
+  },
+  "observability": {
+    "enabled": true
+  }
 }
