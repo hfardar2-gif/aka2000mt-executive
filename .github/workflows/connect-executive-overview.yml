@@ -3,14 +3,13 @@ name: Connect Executive Overview
 on:
   push:
     branches: [main]
-    paths:
-      - ".github/workflows/connect-executive-overview.yml"
 
 permissions:
   contents: write
 
 jobs:
   connect:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
