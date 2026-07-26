@@ -1,0 +1,89 @@
+name: Apply Executive Overview
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/apply-executive-overview.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Patch dashboard
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          path = Path("src/routes/index.tsx")
+          text = path.read_text(encoding="utf-8")
+
+          import_anchor = 'import { Section } from "@/components/dashboard/Section";'
+          overview_import = 'import { ExecutiveOverview } from "@/components/dashboard/ExecutiveOverview";'
+          if overview_import not in text:
+              if import_anchor not in text:
+                  raise SystemExit("Section import anchor not found")
+              text = text.replace(import_anchor, import_anchor + "\n" + overview_import, 1)
+
+          header_anchor = '''            <div>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary">'''
+          header_replacement = '''            <div>
+              <img src="/aka-logo.svg" alt="AKA" className="mb-5 h-16 w-auto rounded-xl bg-white px-3 py-2 shadow-sm print:h-12" />
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary">'''
+          if '/aka-logo.svg' not in text:
+              if header_anchor not in text:
+                  raise SystemExit("Header anchor not found")
+              text = text.replace(header_anchor, header_replacement, 1)
+
+          main_anchor = '''      <main className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-7">'''
+          main_replacement = '''      <main className="mx-auto flex max-w-[1440px] flex-col gap-8 px-6 py-10">
+        <ExecutiveOverview
+          lang={lang}
+          totalPlanned={totalPlanned}
+          totalActual={totalActual}
+          galvanized={totals.galvanized}
+          sold={totals.sold}
+          readyToShip={report.transport.readyWarehouse}
+          tonLabel={tr("ton")}
+        />
+
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-7">'''
+          if '<ExecutiveOverview' not in text:
+              if main_anchor not in text:
+                  raise SystemExit("Main anchor not found")
+              text = text.replace(main_anchor, main_replacement, 1)
+          else:
+              text = text.replace('max-w-7xl flex-col gap-8 px-6 py-10', 'max-w-[1440px] flex-col gap-8 px-6 py-10', 1)
+
+          path.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build
+        run: bun run build
+
+      - name: Commit validated changes
+        run: |
+          rm -f .github/workflows/apply-executive-overview.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Add executive overview without changing data workflows"
+          git push origin main
