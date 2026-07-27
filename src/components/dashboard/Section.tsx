@@ -33,6 +33,24 @@ export function Section({ title, subtitle, children, action }: SectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const logo = document.querySelector<HTMLImageElement>('header img[alt="AKA"]');
+      const metadata = logo?.closest<HTMLElement>(".flex.items-center.gap-6.text-sm");
+      const parent = metadata?.parentElement;
+      if (!logo || !metadata || !parent || parent.querySelector("[data-aka-logo-meta]")) return;
+
+      const wrapper = document.createElement("div");
+      wrapper.dataset.akaLogoMeta = "true";
+      wrapper.className = "flex flex-col items-end gap-3";
+      parent.insertBefore(wrapper, metadata);
+      wrapper.appendChild(logo);
+      wrapper.appendChild(metadata);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
     if (!planTitles.has(title) || !sectionRef.current) return;
 
     const section = sectionRef.current;
