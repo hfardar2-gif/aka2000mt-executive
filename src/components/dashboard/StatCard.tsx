@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ExecutivePhaseOne } from "@/components/dashboard/ExecutivePhaseOne";
 import { SteelConversionRatios } from "@/components/dashboard/SteelConversionRatios";
+import { VisualIconEnhancer } from "@/components/dashboard/VisualIconEnhancer";
 
 interface StatCardProps {
   label: string;
@@ -48,6 +49,7 @@ export function StatCard({ label, value, unit, hint, icon, accent = "primary" }:
 
   return (
     <>
+      <VisualIconEnhancer />
       <ExecutivePhaseOne lang={lang} />
       <SteelConversionRatios lang={lang} />
       {card}
