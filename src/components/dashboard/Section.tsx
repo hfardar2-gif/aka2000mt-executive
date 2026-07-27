@@ -19,12 +19,14 @@ const transportNotes: Record<string, string> = {
 };
 
 const sectionClass =
-  "rounded-2xl border border-[#D9E0E8] bg-white p-6 shadow-sm dark:border-border dark:bg-card " +
+  "rounded-2xl border border-[#E2E7EC] bg-white p-6 dark:border-border dark:bg-card " +
   "[&_table]:border-separate [&_table]:border-spacing-0 " +
-  "[&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead]:bg-[#F5F7FA] dark:[&_thead]:bg-secondary " +
-  "[&_th]:h-11 [&_th]:px-3 [&_th]:text-xs [&_th]:font-semibold [&_th]:text-[#66717E] " +
-  "[&_td]:h-12 [&_td]:px-3 [&_tbody_tr:nth-child(even)]:bg-[#F8FAFC] dark:[&_tbody_tr:nth-child(even)]:bg-secondary/20 " +
-  "[&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-[#EEF3F8] dark:[&_tbody_tr:hover]:bg-secondary/40";
+  "[&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead]:bg-[#F4F6F8] dark:[&_thead]:bg-secondary " +
+  "[&_th]:h-11 [&_th]:px-3 [&_th]:text-xs [&_th]:font-medium [&_th]:text-[#66717E] " +
+  "[&_td]:h-12 [&_td]:px-3 [&_tbody_tr:nth-child(even)]:bg-[#FAFBFC] dark:[&_tbody_tr:nth-child(even)]:bg-secondary/15 " +
+  "[&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-[#F1F5F8] dark:[&_tbody_tr:hover]:bg-secondary/30 " +
+  "[&_.recharts-cartesian-grid-horizontal_line]:stroke-[#DDE4EA] [&_.recharts-cartesian-grid-horizontal_line]:stroke-opacity-50 " +
+  "[&_.recharts-cartesian-grid-vertical_line]:stroke-opacity-0";
 
 const readNumber = (value: string) => Number(value.replace(/[^\d.-]/g, "")) || 0;
 
@@ -78,14 +80,14 @@ export function Section({ title, subtitle, children, action }: SectionProps) {
     <section ref={sectionRef} className={sectionClass}>
       <header className="mb-5 flex items-end justify-between gap-4">
         <div>
-          <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{title}</h2>
-          {subtitle && <p className="mt-1 text-sm leading-6 text-[#66717E] dark:text-muted-foreground">{subtitle}</p>}
+          <h2 className="text-xl font-semibold text-[#17365D] dark:text-foreground">{title}</h2>
+          {subtitle && <p className="mt-1 max-w-[70ch] text-sm leading-6 text-[#66717E] dark:text-muted-foreground">{subtitle}</p>}
         </div>
         {action}
       </header>
       {children}
       {transportNotes[title] ? (
-        <p className="mt-4 rounded-xl border border-[#D9E0E8] bg-[#F5F7FA] px-4 py-3 text-xs leading-6 text-[#66717E] dark:border-border dark:bg-secondary/20 dark:text-muted-foreground">
+        <p className="mt-4 rounded-xl bg-[#F4F6F8] px-4 py-3 text-xs leading-6 text-[#66717E] dark:bg-secondary/20 dark:text-muted-foreground">
           {transportNotes[title]}
         </p>
       ) : null}
