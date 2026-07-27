@@ -20,15 +20,31 @@ const transportNotes: Record<string, string> = {
 
 const sectionClass =
   "rounded-2xl border border-[#E2E7EC] bg-white p-6 dark:border-border dark:bg-card " +
-  "[&_table]:border-separate [&_table]:border-spacing-0 " +
+  "[&_table]:w-full [&_table]:border-separate [&_table]:border-spacing-0 [&_table]:text-center " +
   "[&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead]:bg-[#F4F6F8] dark:[&_thead]:bg-secondary " +
-  "[&_th]:h-11 [&_th]:px-3 [&_th]:text-xs [&_th]:font-medium [&_th]:text-[#66717E] " +
-  "[&_td]:h-12 [&_td]:px-3 [&_tbody_tr:nth-child(even)]:bg-[#FAFBFC] dark:[&_tbody_tr:nth-child(even)]:bg-secondary/15 " +
+  "[&_th]:h-11 [&_th]:px-3 [&_th]:text-center [&_th]:align-middle [&_th]:text-xs [&_th]:font-medium [&_th]:text-[#66717E] " +
+  "[&_td]:h-12 [&_td]:px-3 [&_td]:text-center [&_td]:align-middle [&_tbody_tr:nth-child(even)]:bg-[#FAFBFC] dark:[&_tbody_tr:nth-child(even)]:bg-secondary/15 " +
   "[&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-[#F1F5F8] dark:[&_tbody_tr:hover]:bg-secondary/30 " +
   "[&_.recharts-cartesian-grid-horizontal_line]:stroke-[#DDE4EA] [&_.recharts-cartesian-grid-horizontal_line]:stroke-opacity-50 " +
   "[&_.recharts-cartesian-grid-vertical_line]:stroke-opacity-0";
 
-const readNumber = (value: string) => Number(value.replace(/[^\d.-]/g, "")) || 0;
+const readNumber = (value: string) => {
+  const normalized = value
+    .replace(/[٬,]/g, "")
+    .replace(/[٪%]/g, "")
+    .replace(/[^\d.-]/g, "");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const findValueElement = (labelElement?: HTMLParagraphElement) => {
+  if (!labelElement) return null;
+  const container = labelElement.parentElement;
+  if (!container) return null;
+
+  const candidates = Array.from(container.querySelectorAll<HTMLParagraphElement>("p"));
+  return candidates.find((item) => item !== labelElement && /\d/.test(item.textContent ?? "")) ?? null;
+};
 
 export function Section({ title, subtitle, children, action }: SectionProps) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -54,26 +70,43 @@ export function Section({ title, subtitle, children, action }: SectionProps) {
   useEffect(() => {
     if (!planTitles.has(title) || !sectionRef.current) return;
 
-    const section = sectionRef.current;
-    const labels = Array.from(section.querySelectorAll("p"));
-    const plannedLabel = labels.find((item) => /Total planned|计划总量|مجموع برنامه/i.test(item.textContent ?? ""));
-    const actualLabel = labels.find((item) => /Total actual|实际总量|مجموع واقعی/i.test(item.textContent ?? ""));
-    const achievementLabel = labels.find((item) => /Achievement|完成率|درصد تحقق/i.test(item.textContent ?? ""));
+    const updateSummary = () => {
+      const section = sectionRef.current;
+      if (!section) return;
 
-    const plannedValue = plannedLabel?.parentElement?.querySelector("p:nth-child(2)");
-    const actualValue = actualLabel?.parentElement?.querySelector("p:nth-child(2)");
-    const achievementValue = achievementLabel?.parentElement?.querySelector("p:nth-child(2)");
-    const planned = readNumber(plannedValue?.textContent ?? "");
-    const actual = Number(report.totals.galvanized) || 0;
-    const unit = title === "计划与实际产量" ? "吨" : title === "مقایسه برنامه با تولید واقعی" ? "تن" : "ton";
+      const labels = Array.from(section.querySelectorAll<HTMLParagraphElement>("p"));
+      const plannedLabel = labels.find((item) => /Total\s*planned|计划总量|مجموع برنامه/i.test(item.textContent ?? ""));
+      const actualLabel = labels.find((item) => /Total\s*actual|实际总量|مجموع واقعی/i.test(item.textContent ?? ""));
+      const achievementLabel = labels.find((item) => /Achievement|完成率|درصد تحقق/i.test(item.textContent ?? ""));
 
-    if (actualValue) actualValue.textContent = `${actual.toLocaleString("en-US", { maximumFractionDigits: 0 })} ${unit}`;
-    if (achievementValue) {
-      achievementValue.textContent = `${(planned > 0 ? (actual / planned) * 100 : 0).toLocaleString("en-US", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      })} %`;
-    }
+      const plannedValue = findValueElement(plannedLabel);
+      const actualValue = findValueElement(actualLabel);
+      const achievementValue = findValueElement(achievementLabel);
+
+      const planned = readNumber(plannedValue?.textContent ?? "");
+      const actual = Number(report.totals.galvanized) || 0;
+      const achievement = planned > 0 ? (actual / planned) * 100 : 0;
+      const unit = title === "计划与实际产量" ? "吨" : title === "مقایسه برنامه با تولید واقعی" ? "تن" : "ton";
+
+      if (actualValue) {
+        actualValue.textContent = `${actual.toLocaleString("en-US", { maximumFractionDigits: 0 })} ${unit}`;
+      }
+
+      if (achievementValue) {
+        achievementValue.textContent = `${achievement.toLocaleString("en-US", {
+          minimumFractionDigits: 1,
+          maximumFractionDigits: 1,
+        })} %`;
+      }
+    };
+
+    const frame = window.requestAnimationFrame(updateSummary);
+    const timer = window.setTimeout(updateSummary, 250);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
   }, [title]);
 
   return (
