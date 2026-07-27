@@ -8,7 +8,6 @@ interface SectionProps {
   action?: ReactNode;
 }
 
-const dailyTitles = new Set(["Daily Production", "每日产量", "تولید روزانه"]);
 const planTitles = new Set(["Plan vs Actual Production", "计划与实际产量", "مقایسه برنامه با تولید واقعی"]);
 
 const transportNotes: Record<string, string> = {
@@ -75,38 +74,15 @@ export function Section({ title, subtitle, children, action }: SectionProps) {
     }
   }, [title]);
 
-  const header = (
-    <header className="mb-5 flex items-end justify-between gap-4">
-      <div>
-        <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{title}</h2>
-        {subtitle && <p className="mt-1 text-sm leading-6 text-[#66717E] dark:text-muted-foreground">{subtitle}</p>}
-      </div>
-      {action}
-    </header>
-  );
-
-  if (dailyTitles.has(title)) {
-    return (
-      <details className={`${sectionClass} group`}>
-        <summary className="cursor-pointer list-none">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{title}</h2>
-              {subtitle && <p className="mt-1 text-sm leading-6 text-[#66717E] dark:text-muted-foreground">{subtitle}</p>}
-            </div>
-            <span className="rounded-full border border-[#D9E0E8] bg-[#F5F7FA] px-3 py-1.5 text-xs font-semibold text-[#245A8D] transition-transform group-open:rotate-180 dark:border-border dark:bg-secondary/30">
-              ↓
-            </span>
-          </div>
-        </summary>
-        <div className="mt-6 border-t border-[#D9E0E8] pt-6 dark:border-border">{children}</div>
-      </details>
-    );
-  }
-
   return (
     <section ref={sectionRef} className={sectionClass}>
-      {header}
+      <header className="mb-5 flex items-end justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{title}</h2>
+          {subtitle && <p className="mt-1 text-sm leading-6 text-[#66717E] dark:text-muted-foreground">{subtitle}</p>}
+        </div>
+        {action}
+      </header>
       {children}
       {transportNotes[title] ? (
         <p className="mt-4 rounded-xl border border-[#D9E0E8] bg-[#F5F7FA] px-4 py-3 text-xs leading-6 text-[#66717E] dark:border-border dark:bg-secondary/20 dark:text-muted-foreground">
