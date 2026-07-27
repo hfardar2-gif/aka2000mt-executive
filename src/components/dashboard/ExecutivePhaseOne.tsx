@@ -17,11 +17,12 @@ const number = (value: number, digits = 0) =>
     : "—";
 
 const pct = (value: number) => `${number(value, 1)}%`;
+const clampPct = (value: number) => Math.max(0, Math.min(value, 100));
 
 const planSectionTitles: Record<Lang, string> = {
   en: "Plan vs Actual Production",
   zh: "计划与实际产量",
-  fa: "برنامه در برابر تولید واقعی",
+  fa: "مقایسه برنامه با تولید واقعی",
 };
 
 const actualLabels: Record<Lang, string> = {
@@ -44,11 +45,10 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
   const productionProgress = totals.inputCoilsTon > 0 ? (totals.galvanized / totals.inputCoilsTon) * 100 : 0;
   const remainingInput = Math.max(totals.inputCoilsTon - totals.galvanized, 0);
   const reservedSales = Number(report.transport.underLoading) || 0;
+  const unsoldShare = totals.galvanized > 0 ? (finishedInventory / totals.galvanized) * 100 : 0;
 
   useEffect(() => {
-    const header = Array.from(document.querySelectorAll("header")).find((item) =>
-      item.querySelector("h1"),
-    );
+    const header = Array.from(document.querySelectorAll("header")).find((item) => item.querySelector("h1"));
     const metadata = header?.querySelector(".flex.items-center.gap-6.text-sm");
     if (metadata) setLogoTarget(metadata);
   }, []);
@@ -91,7 +91,7 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
 
   const text = {
     en: {
-      eyebrow: "PROJECT EXECUTIVE SUMMARY",
+      eyebrow: "Project executive summary",
       progress: "Production progress",
       progressHint: "Galvanized output versus project input",
       sales: "Sales conversion",
@@ -101,7 +101,8 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       shipment: "Ready for shipment",
       shipmentHint: "Subject to commercial and loading status",
       issue: "Key management issue",
-      issueText: `${number(finishedInventory)} tons of finished galvanized product remain unsold. Production is ahead of commercialization, increasing pressure on warehouse capacity.`,
+      issueHeadline: `${number(finishedInventory)} tons remain unsold`,
+      issueText: `Production is ahead of completed sales. ${pct(unsoldShare)} of galvanized output remains in finished-goods inventory.`,
       flow: "Project flow",
       flowSub: "Material conversion from imported hot-rolled coil to completed sales",
       input: "HRC input",
@@ -110,12 +111,13 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       galvanized: "Galvanized",
       reserved: "Sales reservation",
       sold: "Completed sales",
-      flowNote:
-        "Completed sales means the customer's payment has been received in full. A reservation means the customer has not yet paid; after settlement, the shipment weight is transferred to completed-sales status.",
+      completedLegend: "Completed sales: payment received in full",
+      reservedLegend: "Sales reservation: payment not yet completed",
       responsibility: "Execution responsibility",
       combined: "AKA and Tehran Office — supply, project ownership, sales, payment follow-up and shipment coordination",
       factory: "Foolad Dashtestan — pickling, rolling and galvanizing",
       balance: "Production, sales and inventory balance",
+      balanceInsight: `${pct(unsoldShare)} of galvanized output remains unsold`,
       soldPart: "Completed sales",
       stockPart: "Finished inventory",
       remaining: "Remaining conversion",
@@ -143,7 +145,8 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       shipment: "待发运",
       shipmentHint: "取决于商务及装运状态",
       issue: "核心管理问题",
-      issueText: `目前仍有${number(finishedInventory)}吨镀锌成品尚未销售。生产进度快于商业转化，仓储压力正在上升。`,
+      issueHeadline: `${number(finishedInventory)}吨成品尚未销售`,
+      issueText: `生产进度快于已完成销售，镀锌产量的${pct(unsoldShare)}仍为成品库存。`,
       flow: "项目流程",
       flowSub: "从进口热轧卷到完成销售的材料转化",
       input: "热轧卷投入",
@@ -152,12 +155,13 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       galvanized: "镀锌",
       reserved: "销售预留",
       sold: "已完成销售",
-      flowNote:
-        "已完成销售是指已收到客户全部款项；销售预留表示客户尚未付款。完成结算后，该客户的装运重量将转为已完成销售状态。",
+      completedLegend: "已完成销售：已收到客户全部款项",
+      reservedLegend: "销售预留：客户尚未完成付款",
       responsibility: "执行责任",
       combined: "AKA及德黑兰办公室——供应、项目管理、销售、收款跟进及发运协调",
       factory: "Foolad Dashtestan——酸洗、轧制及镀锌",
       balance: "生产、销售及库存平衡",
+      balanceInsight: `镀锌产量的${pct(unsoldShare)}仍未销售`,
       soldPart: "已完成销售",
       stockPart: "成品库存",
       remaining: "待转化投入",
@@ -185,7 +189,8 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       shipment: "آمادهٔ ارسال",
       shipmentHint: "وابسته به وضعیت تجاری و بارگیری",
       issue: "مسئلهٔ اصلی مدیریتی",
-      issueText: `${number(finishedInventory)} تن محصول گالوانیزه هنوز به فروش نرسیده است. تولید از تجاری‌سازی جلوتر است و فشار بر ظرفیت انبار افزایش یافته است.`,
+      issueHeadline: `${number(finishedInventory)} تن محصول نهایی هنوز فروش نرفته است`,
+      issueText: `تولید از فروش قطعی جلوتر است و ${pct(unsoldShare)} از محصول گالوانیزه همچنان در موجودی محصول نهایی قرار دارد.`,
       flow: "جریان پروژه",
       flowSub: "تبدیل ورق گرم وارداتی تا فروش قطعی محصول",
       input: "ورق گرم ورودی",
@@ -194,12 +199,13 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       galvanized: "گالوانیزه",
       reserved: "رزرو فروش",
       sold: "فروش قطعی",
-      flowNote:
-        "فروش قطعی به معنای دریافت وجه کامل از مشتری است و رزرو یعنی هنوز مشتری وجه خود را پرداخت نکرده و پس از تسویه، وزن محمولهٔ ایشان به وضعیت قطعی تبدیل می‌شود.",
+      completedLegend: "فروش قطعی: وجه مشتری به‌طور کامل دریافت شده است",
+      reservedLegend: "رزرو فروش: پرداخت مشتری هنوز تکمیل نشده است",
       responsibility: "مسئولیت اجرا",
       combined: "آکا و دفتر تهران — تأمین، راهبری پروژه، فروش، پیگیری وصول و هماهنگی ارسال",
       factory: "فولاد دشتستان — اسیدشویی، نورد و گالوانیزه",
       balance: "توازن تولید، فروش و موجودی",
+      balanceInsight: `${pct(unsoldShare)} از تولید گالوانیزه هنوز فروش نرفته است`,
       soldPart: "فروش قطعی",
       stockPart: "موجودی محصول نهایی",
       remaining: "ورودی باقی‌مانده برای تبدیل",
@@ -219,19 +225,17 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
   }[lang];
 
   const kpis = [
-    { label: text.progress, value: pct(productionProgress), hint: text.progressHint, tone: "text-[#245A8D]" },
-    { label: text.sales, value: pct(salesConversion), hint: text.salesHint, tone: "text-[#2E7D5B]" },
-    { label: text.inventory, value: number(finishedInventory), hint: text.inventoryHint, tone: "text-[#C98316]", unit: text.ton },
-    { label: text.shipment, value: number(report.transport.readyWarehouse), hint: text.shipmentHint, tone: "text-[#B5443C]", unit: text.ton },
+    { label: text.progress, value: pct(productionProgress), hint: text.progressHint, tone: "text-[#245A8D]", progress: productionProgress, bar: "bg-[#245A8D]" },
+    { label: text.sales, value: pct(salesConversion), hint: text.salesHint, tone: "text-[#2E7D5B]", progress: salesConversion, bar: "bg-[#2E7D5B]" },
+    { label: text.inventory, value: number(finishedInventory), hint: text.inventoryHint, tone: "text-[#C98316]", unit: text.ton, progress: unsoldShare, bar: "bg-[#C98316]" },
+    { label: text.shipment, value: number(report.transport.readyWarehouse), hint: text.shipmentHint, tone: "text-[#B5443C]", unit: text.ton, progress: totals.galvanized > 0 ? (Number(report.transport.readyWarehouse) / totals.galvanized) * 100 : 0, bar: "bg-[#B5443C]" },
   ];
 
-  const flow = [
+  const productionFlow = [
     { label: text.input, value: totals.inputCoilsTon },
     { label: text.pickling, value: totals.pickling },
     { label: text.rolling, value: totals.rolling },
     { label: text.galvanized, value: totals.galvanized },
-    { label: text.reserved, value: reservedSales, independent: true },
-    { label: text.sold, value: totals.sold },
   ];
 
   const analysis = [
@@ -248,91 +252,102 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
   const remainingShare = Math.min((remainingInput / Math.max(totals.inputCoilsTon, 1)) * 100, 100);
 
   return (
-    <div className="order-first col-span-full space-y-6" dir={lang === "fa" ? "rtl" : "ltr"}>
+    <div className="order-first col-span-full space-y-8" dir={lang === "fa" ? "rtl" : "ltr"}>
       {logoTarget
         ? createPortal(
-            <img
-              src="/aka-logo.svg"
-              alt="AKA"
-              className="h-16 w-auto rounded-xl bg-white px-3 py-2 shadow-sm print:h-12"
-            />,
+            <img src="/aka-logo.svg" alt="AKA" className="h-14 w-auto rounded-lg bg-white px-2 py-1 print:h-12" />,
             logoTarget,
           )
         : null}
 
-      <section className="overflow-hidden rounded-3xl border border-[#D9E0E8] bg-white shadow-sm dark:border-border dark:bg-card">
-        <div className="flex flex-wrap items-center justify-between gap-5 border-b border-[#D9E0E8] bg-[#F5F7FA] px-6 py-5 dark:border-border dark:bg-secondary/20">
-          <p className="text-sm font-bold tracking-[0.12em] text-[#17365D] dark:text-primary">{text.eyebrow}</p>
-          <div className="rounded-full border border-[#D9E0E8] bg-white px-4 py-2 text-xs text-[#66717E] dark:border-border dark:bg-card dark:text-muted-foreground">
-            {report.reportDate}
-          </div>
+      <section className="overflow-hidden rounded-2xl border border-[#E2E7EC] bg-white dark:border-border dark:bg-card">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#E8EDF2] px-6 py-4 dark:border-border">
+          <p className="text-sm font-semibold text-[#17365D] dark:text-primary">{text.eyebrow}</p>
+          <span className="rounded-full bg-[#F4F6F8] px-3 py-1.5 text-xs text-[#66717E] dark:bg-secondary/30 dark:text-muted-foreground">{report.reportDate}</span>
         </div>
 
-        <div className="grid gap-4 p-5 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-4">
           {kpis.map((item) => (
-            <article key={item.label} className="min-h-[145px] rounded-2xl border border-[#D9E0E8] bg-white p-5 shadow-sm dark:border-border dark:bg-card">
-              <p className="text-[13px] font-semibold text-[#66717E] dark:text-muted-foreground">{item.label}</p>
-              <p className={`mt-4 text-[38px] font-bold leading-none tabular-nums ${item.tone}`}>
+            <article key={item.label} className="min-h-[146px] rounded-xl border border-[#E2E7EC] bg-white p-5 transition-all hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(23,54,93,0.08)] dark:border-border dark:bg-card">
+              <p className="text-[13px] font-medium text-[#66717E] dark:text-muted-foreground">{item.label}</p>
+              <p className={`mt-4 text-[40px] font-semibold leading-none tabular-nums ${item.tone}`}>
                 {item.value}{item.unit ? <span className="ms-2 text-sm font-medium text-[#66717E]">{item.unit}</span> : null}
               </p>
               <p className="mt-3 text-xs leading-5 text-[#66717E] dark:text-muted-foreground">{item.hint}</p>
+              <div className="mt-4 h-2 overflow-hidden rounded-full bg-[#EEF2F5] dark:bg-secondary/40">
+                <div className={`h-full rounded-full transition-[width] duration-700 ${item.bar}`} style={{ width: `${clampPct(item.progress)}%` }} />
+              </div>
             </article>
           ))}
         </div>
-
-        <div className="mx-5 mb-5 rounded-2xl border-s-4 border-[#B5443C] bg-[#FFF5DF] px-5 py-4 dark:bg-amber-500/10">
-          <p className="text-xs font-bold uppercase tracking-wider text-[#B5443C]">{text.issue}</p>
-          <p className="mt-2 text-sm leading-7 text-[#17212B] dark:text-foreground">{text.issueText}</p>
-        </div>
       </section>
 
-      <section className="rounded-3xl border border-[#D9E0E8] bg-white p-6 shadow-sm dark:border-border dark:bg-card">
-        <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{text.flow}</h2>
+      <section className="rounded-2xl border border-[#F0D7A9] bg-[#FFF9ED] px-6 py-5 dark:border-amber-500/30 dark:bg-amber-500/10">
+        <p className="text-xs font-semibold text-[#B5443C]">{text.issue}</p>
+        <p className="mt-2 text-2xl font-semibold tabular-nums text-[#17212B] dark:text-foreground">{text.issueHeadline}</p>
+        <p className="mt-2 max-w-[70ch] text-sm leading-7 text-[#66717E] dark:text-muted-foreground">{text.issueText}</p>
+      </section>
+
+      <section className="rounded-2xl border border-[#E2E7EC] bg-white p-6 dark:border-border dark:bg-card">
+        <h2 className="text-xl font-semibold text-[#17365D] dark:text-foreground">{text.flow}</h2>
         <p className="mt-1 text-sm text-[#66717E] dark:text-muted-foreground">{text.flowSub}</p>
-        <div className="mt-6 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
-          {flow.map((item, index) => {
-            const previous = index === 0 ? item.value : flow[index - 1].value;
+
+        <div className="mt-6 flex flex-col gap-3 xl:flex-row xl:items-stretch">
+          {productionFlow.map((item, index) => {
+            const previous = index === 0 ? item.value : productionFlow[index - 1].value;
             const conversion = previous > 0 ? (item.value / previous) * 100 : 0;
             return (
-              <div key={item.label} className={`relative rounded-2xl border p-4 text-center dark:border-border ${item.independent ? "border-[#C98316] bg-[#FFF5DF] dark:bg-amber-500/10" : "border-[#D9E0E8] bg-[#F5F7FA] dark:bg-secondary/20"}`}>
-                <p className="text-xs font-semibold text-[#66717E] dark:text-muted-foreground">{item.label}</p>
-                <p className={`mt-2 text-2xl font-bold tabular-nums ${item.independent ? "text-[#C98316]" : "text-[#245A8D]"}`}>{number(item.value)}</p>
-                <p className="mt-1 text-xs text-[#66717E]">{text.ton}</p>
-                {index > 0 && !item.independent && !flow[index - 1].independent ? <span className="mt-3 inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#17365D] shadow-sm dark:bg-card dark:text-primary">{pct(conversion)}</span> : null}
+              <div key={item.label} className="contents">
+                <div className="flex-1 rounded-xl border border-[#E2E7EC] bg-[#F7F9FB] p-4 text-center dark:border-border dark:bg-secondary/20">
+                  <p className="text-xs font-medium text-[#66717E] dark:text-muted-foreground">{item.label}</p>
+                  <p className="mt-2 text-2xl font-semibold tabular-nums text-[#245A8D]">{number(item.value)}</p>
+                  <p className="mt-1 text-xs text-[#66717E]">{text.ton}</p>
+                  {index > 0 ? <span className="mt-3 inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#17365D] dark:bg-card dark:text-primary">{pct(conversion)}</span> : null}
+                </div>
+                {index < productionFlow.length - 1 ? <div className="flex items-center justify-center text-xl text-[#A7B3BF] xl:px-1">→</div> : null}
               </div>
             );
           })}
+
+          <div className="flex items-center justify-center text-xl text-[#A7B3BF] xl:px-1">→</div>
+          <div className="grid flex-[1.5] gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-[#BFDCCF] bg-[#F1F8F4] p-4 text-center dark:border-emerald-500/30 dark:bg-emerald-500/10">
+              <p className="text-xs font-medium text-[#2E7D5B]">{text.sold}</p>
+              <p className="mt-2 text-2xl font-semibold tabular-nums text-[#2E7D5B]">{number(totals.sold)}</p>
+              <p className="mt-1 text-xs text-[#66717E]">{text.ton}</p>
+              <span className="mt-3 inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold text-[#2E7D5B] dark:bg-card">{pct(salesConversion)}</span>
+            </div>
+            <div className="rounded-xl border border-[#F0D7A9] bg-[#FFF9ED] p-4 text-center dark:border-amber-500/30 dark:bg-amber-500/10">
+              <p className="text-xs font-medium text-[#C98316]">{text.reserved}</p>
+              <p className="mt-2 text-2xl font-semibold tabular-nums text-[#C98316]">{number(reservedSales)}</p>
+              <p className="mt-1 text-xs text-[#66717E]">{text.ton}</p>
+            </div>
+          </div>
         </div>
-        <p className="mt-5 rounded-xl border border-[#D9E0E8] bg-[#F5F7FA] px-4 py-3 text-xs leading-6 text-[#66717E] dark:border-border dark:bg-secondary/20 dark:text-muted-foreground">
-          {text.flowNote}
-        </p>
+
+        <div className="mt-5 flex flex-wrap gap-3 text-xs leading-6">
+          <span className="inline-flex items-center gap-2 rounded-full bg-[#F1F8F4] px-3 py-1.5 text-[#2E7D5B]"><span className="h-2 w-2 rounded-full bg-[#2E7D5B]" />{text.completedLegend}</span>
+          <span className="inline-flex items-center gap-2 rounded-full bg-[#FFF9ED] px-3 py-1.5 text-[#A66A0B]"><span className="h-2 w-2 rounded-full bg-[#C98316]" />{text.reservedLegend}</span>
+        </div>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-        <section className="rounded-3xl border border-[#D9E0E8] bg-white p-6 shadow-sm dark:border-border dark:bg-card">
-          <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{text.balance}</h2>
-          <div className="mt-5 space-y-5">
-            <div>
-              <div className="mb-2 flex justify-between text-xs"><span>{text.soldPart}</span><strong>{number(totals.sold)} {text.ton}</strong></div>
-              <div className="h-3 overflow-hidden rounded-full bg-[#EAF5EF]"><div className="h-full rounded-full bg-[#2E7D5B]" style={{ width: `${soldShare}%` }} /></div>
-            </div>
-            <div>
-              <div className="mb-2 flex justify-between text-xs"><span>{text.stockPart}</span><strong>{number(finishedInventory)} {text.ton}</strong></div>
-              <div className="h-3 overflow-hidden rounded-full bg-[#FFF5DF]"><div className="h-full rounded-full bg-[#C98316]" style={{ width: `${inventoryShare}%` }} /></div>
-            </div>
-            <div>
-              <div className="mb-2 flex justify-between text-xs"><span>{text.remaining}</span><strong>{number(remainingInput)} {text.ton}</strong></div>
-              <div className="h-3 overflow-hidden rounded-full bg-[#E8EEF5]"><div className="h-full rounded-full bg-[#245A8D]" style={{ width: `${remainingShare}%` }} /></div>
-            </div>
+        <section className="rounded-2xl border border-[#E2E7EC] bg-white p-6 dark:border-border dark:bg-card">
+          <p className="text-xs font-medium text-[#66717E] dark:text-muted-foreground">{text.balance}</p>
+          <h2 className="mt-1 text-xl font-semibold text-[#17365D] dark:text-foreground">{text.balanceInsight}</h2>
+          <div className="mt-6 space-y-5">
+            <div><div className="mb-2 flex justify-between text-xs"><span>{text.soldPart}</span><strong>{number(totals.sold)} {text.ton}</strong></div><div className="h-2.5 overflow-hidden rounded-full bg-[#EAF5EF]"><div className="h-full rounded-full bg-[#2E7D5B] transition-[width] duration-700" style={{ width: `${soldShare}%` }} /></div></div>
+            <div><div className="mb-2 flex justify-between text-xs"><span>{text.stockPart}</span><strong>{number(finishedInventory)} {text.ton}</strong></div><div className="h-2.5 overflow-hidden rounded-full bg-[#FFF5DF]"><div className="h-full rounded-full bg-[#C98316] transition-[width] duration-700" style={{ width: `${inventoryShare}%` }} /></div></div>
+            <div><div className="mb-2 flex justify-between text-xs"><span>{text.remaining}</span><strong>{number(remainingInput)} {text.ton}</strong></div><div className="h-2.5 overflow-hidden rounded-full bg-[#E8EEF5]"><div className="h-full rounded-full bg-[#245A8D] transition-[width] duration-700" style={{ width: `${remainingShare}%` }} /></div></div>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-[#D9E0E8] bg-white p-6 shadow-sm dark:border-border dark:bg-card">
-          <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{text.responsibility}</h2>
+        <section className="rounded-2xl border border-[#E2E7EC] bg-white p-6 dark:border-border dark:bg-card">
+          <h2 className="text-xl font-semibold text-[#17365D] dark:text-foreground">{text.responsibility}</h2>
           <div className="mt-5 space-y-3 text-sm leading-6">
             {[text.combined, text.factory].map((item, index) => (
-              <div key={item} className="flex gap-3 rounded-xl bg-[#F5F7FA] p-3 dark:bg-secondary/20">
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#17365D] text-xs font-bold text-white">{index + 1}</span>
+              <div key={item} className="flex gap-3 rounded-xl bg-[#F7F9FB] p-4 dark:bg-secondary/20">
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#17365D] text-xs font-semibold text-white">{index + 1}</span>
                 <span>{item}</span>
               </div>
             ))}
@@ -340,15 +355,19 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
         </section>
       </div>
 
-      <section className="rounded-3xl border border-[#D9E0E8] bg-white p-6 shadow-sm dark:border-border dark:bg-card">
-        <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{text.analysis}</h2>
-        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          {analysis.map(([title, body], index) => (
-            <article key={title} className={`rounded-2xl border p-4 ${index === 4 ? "border-[#C98316] bg-[#FFF5DF] dark:bg-amber-500/10" : "border-[#D9E0E8] bg-[#F5F7FA] dark:border-border dark:bg-secondary/20"}`}>
-              <h3 className="text-sm font-bold text-[#17365D] dark:text-foreground">{title}</h3>
+      <section className="rounded-2xl border border-[#E2E7EC] bg-white p-6 dark:border-border dark:bg-card">
+        <h2 className="text-xl font-semibold text-[#17365D] dark:text-foreground">{text.analysis}</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {analysis.slice(0, 4).map(([title, body]) => (
+            <article key={title} className="rounded-xl bg-[#F7F9FB] p-4 dark:bg-secondary/20">
+              <h3 className="text-sm font-semibold text-[#17365D] dark:text-foreground">{title}</h3>
               <p className="mt-2 text-xs leading-6 text-[#66717E] dark:text-muted-foreground">{body}</p>
             </article>
           ))}
+          <article className="md:col-span-2 xl:col-span-4 rounded-xl border border-[#F0D7A9] bg-[#FFF9ED] p-5 dark:border-amber-500/30 dark:bg-amber-500/10">
+            <h3 className="text-sm font-semibold text-[#A66A0B]">{analysis[4][0]}</h3>
+            <p className="mt-2 max-w-[70ch] text-sm leading-7 text-[#66717E] dark:text-muted-foreground">{analysis[4][1]}</p>
+          </article>
         </div>
       </section>
     </div>
