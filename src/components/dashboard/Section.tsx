@@ -1,4 +1,5 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
+import report from "@/data/report.json";
 
 interface SectionProps {
   title: string;
@@ -8,6 +9,15 @@ interface SectionProps {
 }
 
 const dailyTitles = new Set(["Daily Production", "每日产量", "تولید روزانه"]);
+const planTitles = new Set(["Plan vs Actual Production", "计划与实际产量", "مقایسه برنامه با تولید واقعی"]);
+
+const transportNotes: Record<string, string> = {
+  Transport:
+    "Under loading means the customer has not yet paid. After financial settlement, the customer's shipment will be dispatched.",
+  运输: "装载中表示客户尚未付款；完成财务结算后，该客户的货物将安排发运。",
+  "حمل‌ونقل":
+    "در حال بارگیری یعنی هنوز مشتری وجه خود را پرداخت نکرده و پس از تسویهٔ مالی، محمولهٔ ایشان حمل می‌گردد.",
+};
 
 const sectionClass =
   "rounded-2xl border border-[#D9E0E8] bg-white p-6 shadow-sm dark:border-border dark:bg-card " +
@@ -17,7 +27,36 @@ const sectionClass =
   "[&_td]:h-12 [&_td]:px-3 [&_tbody_tr:nth-child(even)]:bg-[#F8FAFC] dark:[&_tbody_tr:nth-child(even)]:bg-secondary/20 " +
   "[&_tbody_tr]:transition-colors [&_tbody_tr:hover]:bg-[#EEF3F8] dark:[&_tbody_tr:hover]:bg-secondary/40";
 
+const readNumber = (value: string) => Number(value.replace(/[^\d.-]/g, "")) || 0;
+
 export function Section({ title, subtitle, children, action }: SectionProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!planTitles.has(title) || !sectionRef.current) return;
+
+    const section = sectionRef.current;
+    const labels = Array.from(section.querySelectorAll("p"));
+    const plannedLabel = labels.find((item) => /Total planned|计划总量|مجموع برنامه/i.test(item.textContent ?? ""));
+    const actualLabel = labels.find((item) => /Total actual|实际总量|مجموع واقعی/i.test(item.textContent ?? ""));
+    const achievementLabel = labels.find((item) => /Achievement|完成率|درصد تحقق/i.test(item.textContent ?? ""));
+
+    const plannedValue = plannedLabel?.parentElement?.querySelector("p:nth-child(2)");
+    const actualValue = actualLabel?.parentElement?.querySelector("p:nth-child(2)");
+    const achievementValue = achievementLabel?.parentElement?.querySelector("p:nth-child(2)");
+    const planned = readNumber(plannedValue?.textContent ?? "");
+    const actual = Number(report.totals.galvanized) || 0;
+    const unit = title === "计划与实际产量" ? "吨" : title === "مقایسه برنامه با تولید واقعی" ? "تن" : "ton";
+
+    if (actualValue) actualValue.textContent = `${actual.toLocaleString("en-US", { maximumFractionDigits: 0 })} ${unit}`;
+    if (achievementValue) {
+      achievementValue.textContent = `${(planned > 0 ? (actual / planned) * 100 : 0).toLocaleString("en-US", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      })} %`;
+    }
+  }, [title]);
+
   const header = (
     <header className="mb-5 flex items-end justify-between gap-4">
       <div>
@@ -48,9 +87,14 @@ export function Section({ title, subtitle, children, action }: SectionProps) {
   }
 
   return (
-    <section className={sectionClass}>
+    <section ref={sectionRef} className={sectionClass}>
       {header}
       {children}
+      {transportNotes[title] ? (
+        <p className="mt-4 rounded-xl border border-[#D9E0E8] bg-[#F5F7FA] px-4 py-3 text-xs leading-6 text-[#66717E] dark:border-border dark:bg-secondary/20 dark:text-muted-foreground">
+          {transportNotes[title]}
+        </p>
+      ) : null}
     </section>
   );
 }
