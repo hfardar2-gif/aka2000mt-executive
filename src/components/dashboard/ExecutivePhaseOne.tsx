@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import report from "@/data/report.json";
 
 type Lang = "en" | "zh" | "fa";
@@ -16,12 +18,76 @@ const number = (value: number, digits = 0) =>
 
 const pct = (value: number) => `${number(value, 1)}%`;
 
+const planSectionTitles: Record<Lang, string> = {
+  en: "Plan vs Actual Production",
+  zh: "计划与实际产量",
+  fa: "برنامه در برابر تولید واقعی",
+};
+
+const actualLabels: Record<Lang, string> = {
+  en: "Total Actual",
+  zh: "实际总量",
+  fa: "مجموع واقعی",
+};
+
+const achievementLabels: Record<Lang, string> = {
+  en: "Achievement",
+  zh: "完成率",
+  fa: "درصد تحقق",
+};
+
 export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
   const { totals } = report;
+  const [logoTarget, setLogoTarget] = useState<Element | null>(null);
   const finishedInventory = Math.max(totals.galvanized - totals.sold, 0);
   const salesConversion = totals.galvanized > 0 ? (totals.sold / totals.galvanized) * 100 : 0;
   const productionProgress = totals.inputCoilsTon > 0 ? (totals.galvanized / totals.inputCoilsTon) * 100 : 0;
   const remainingInput = Math.max(totals.inputCoilsTon - totals.galvanized, 0);
+  const reservedSales = Number(report.transport.underLoading) || 0;
+
+  useEffect(() => {
+    const header = Array.from(document.querySelectorAll("header")).find((item) =>
+      item.querySelector("h1"),
+    );
+    const metadata = header?.querySelector(".flex.items-center.gap-6.text-sm");
+    if (metadata) setLogoTarget(metadata);
+  }, []);
+
+  useEffect(() => {
+    const updatePlanSummary = () => {
+      const heading = Array.from(document.querySelectorAll("h2")).find(
+        (item) => item.textContent?.trim() === planSectionTitles[lang],
+      );
+      const section = heading?.closest("section");
+      if (!section) return;
+
+      const plannedCard = Array.from(section.querySelectorAll("p")).find((item) =>
+        /Total Planned|计划总量|مجموع برنامه/.test(item.textContent ?? ""),
+      )?.parentElement;
+      const plannedText = plannedCard?.querySelector("p:nth-child(2)")?.textContent ?? "";
+      const planned = Number(plannedText.replace(/[^\d.-]/g, "")) || 0;
+
+      const actualLabel = Array.from(section.querySelectorAll("p")).find(
+        (item) => item.textContent?.trim() === actualLabels[lang],
+      );
+      const actualValue = actualLabel?.parentElement?.querySelector("p:nth-child(2)");
+      if (actualValue) {
+        const unit = lang === "zh" ? "吨" : lang === "fa" ? "تن" : "ton";
+        actualValue.textContent = `${number(totals.galvanized)} ${unit}`;
+      }
+
+      const achievementLabel = Array.from(section.querySelectorAll("p")).find(
+        (item) => item.textContent?.trim() === achievementLabels[lang],
+      );
+      const achievementValue = achievementLabel?.parentElement?.querySelector("p:nth-child(2)");
+      if (achievementValue) {
+        achievementValue.textContent = pct(planned > 0 ? (totals.galvanized / planned) * 100 : 0);
+      }
+    };
+
+    const frame = window.requestAnimationFrame(updatePlanSummary);
+    return () => window.cancelAnimationFrame(frame);
+  }, [lang, totals.galvanized]);
 
   const text = {
     en: {
@@ -42,13 +108,15 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       pickling: "Pickling",
       rolling: "Rolling",
       galvanized: "Galvanized",
-      sold: "Sold",
+      reserved: "Sales reservation",
+      sold: "Completed sales",
+      flowNote:
+        "Completed sales means the customer's payment has been received in full. A reservation means the customer has not yet paid; after settlement, the shipment weight is transferred to completed-sales status.",
       responsibility: "Execution responsibility",
-      aka: "AKA — supply and project ownership",
+      combined: "AKA and Tehran Office — supply, project ownership, sales, payment follow-up and shipment coordination",
       factory: "Foolad Dashtestan — pickling, rolling and galvanizing",
-      tehran: "Tehran office — sales, payment follow-up and shipment coordination",
       balance: "Production, sales and inventory balance",
-      soldPart: "Sold",
+      soldPart: "Completed sales",
       stockPart: "Finished inventory",
       remaining: "Remaining conversion",
       analysis: "Management analysis",
@@ -82,13 +150,15 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       pickling: "酸洗",
       rolling: "轧制",
       galvanized: "镀锌",
-      sold: "已售",
+      reserved: "销售预留",
+      sold: "已完成销售",
+      flowNote:
+        "已完成销售是指已收到客户全部款项；销售预留表示客户尚未付款。完成结算后，该客户的装运重量将转为已完成销售状态。",
       responsibility: "执行责任",
-      aka: "AKA——供应及项目管理",
+      combined: "AKA及德黑兰办公室——供应、项目管理、销售、收款跟进及发运协调",
       factory: "Foolad Dashtestan——酸洗、轧制及镀锌",
-      tehran: "德黑兰办公室——销售、收款跟进及发运协调",
       balance: "生产、销售及库存平衡",
-      soldPart: "已售",
+      soldPart: "已完成销售",
       stockPart: "成品库存",
       remaining: "待转化投入",
       analysis: "管理分析",
@@ -122,11 +192,13 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       pickling: "اسیدشویی",
       rolling: "نورد",
       galvanized: "گالوانیزه",
+      reserved: "رزرو فروش",
       sold: "فروش قطعی",
+      flowNote:
+        "فروش قطعی به معنای دریافت وجه کامل از مشتری است و رزرو یعنی هنوز مشتری وجه خود را پرداخت نکرده و پس از تسویه، وزن محمولهٔ ایشان به وضعیت قطعی تبدیل می‌شود.",
       responsibility: "مسئولیت اجرا",
-      aka: "آکا — تأمین و راهبری پروژه",
+      combined: "آکا و دفتر تهران — تأمین، راهبری پروژه، فروش، پیگیری وصول و هماهنگی ارسال",
       factory: "فولاد دشتستان — اسیدشویی، نورد و گالوانیزه",
-      tehran: "دفتر تهران — فروش، پیگیری وصول و هماهنگی ارسال",
       balance: "توازن تولید، فروش و موجودی",
       soldPart: "فروش قطعی",
       stockPart: "موجودی محصول نهایی",
@@ -158,6 +230,7 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
     { label: text.pickling, value: totals.pickling },
     { label: text.rolling, value: totals.rolling },
     { label: text.galvanized, value: totals.galvanized },
+    { label: text.reserved, value: reservedSales, independent: true },
     { label: text.sold, value: totals.sold },
   ];
 
@@ -176,12 +249,20 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
 
   return (
     <div className="order-first col-span-full space-y-6" dir={lang === "fa" ? "rtl" : "ltr"}>
+      {logoTarget
+        ? createPortal(
+            <img
+              src="/aka-logo.svg"
+              alt="AKA"
+              className="h-16 w-auto rounded-xl bg-white px-3 py-2 shadow-sm print:h-12"
+            />,
+            logoTarget,
+          )
+        : null}
+
       <section className="overflow-hidden rounded-3xl border border-[#D9E0E8] bg-white shadow-sm dark:border-border dark:bg-card">
         <div className="flex flex-wrap items-center justify-between gap-5 border-b border-[#D9E0E8] bg-[#F5F7FA] px-6 py-5 dark:border-border dark:bg-secondary/20">
-          <div className="flex items-center gap-4">
-            <img src="/aka-logo.svg" alt="AKA" className="h-14 w-auto rounded-xl bg-white px-2 py-1 shadow-sm" />
-            <p className="text-sm font-bold tracking-[0.12em] text-[#17365D] dark:text-primary">{text.eyebrow}</p>
-          </div>
+          <p className="text-sm font-bold tracking-[0.12em] text-[#17365D] dark:text-primary">{text.eyebrow}</p>
           <div className="rounded-full border border-[#D9E0E8] bg-white px-4 py-2 text-xs text-[#66717E] dark:border-border dark:bg-card dark:text-muted-foreground">
             {report.reportDate}
           </div>
@@ -208,20 +289,23 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
       <section className="rounded-3xl border border-[#D9E0E8] bg-white p-6 shadow-sm dark:border-border dark:bg-card">
         <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{text.flow}</h2>
         <p className="mt-1 text-sm text-[#66717E] dark:text-muted-foreground">{text.flowSub}</p>
-        <div className="mt-6 grid gap-3 md:grid-cols-5">
+        <div className="mt-6 grid gap-3 md:grid-cols-3 xl:grid-cols-6">
           {flow.map((item, index) => {
             const previous = index === 0 ? item.value : flow[index - 1].value;
             const conversion = previous > 0 ? (item.value / previous) * 100 : 0;
             return (
-              <div key={item.label} className="relative rounded-2xl border border-[#D9E0E8] bg-[#F5F7FA] p-4 text-center dark:border-border dark:bg-secondary/20">
+              <div key={item.label} className={`relative rounded-2xl border p-4 text-center dark:border-border ${item.independent ? "border-[#C98316] bg-[#FFF5DF] dark:bg-amber-500/10" : "border-[#D9E0E8] bg-[#F5F7FA] dark:bg-secondary/20"}`}>
                 <p className="text-xs font-semibold text-[#66717E] dark:text-muted-foreground">{item.label}</p>
-                <p className="mt-2 text-2xl font-bold tabular-nums text-[#245A8D]">{number(item.value)}</p>
+                <p className={`mt-2 text-2xl font-bold tabular-nums ${item.independent ? "text-[#C98316]" : "text-[#245A8D]"}`}>{number(item.value)}</p>
                 <p className="mt-1 text-xs text-[#66717E]">{text.ton}</p>
-                {index > 0 ? <span className="mt-3 inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#17365D] shadow-sm dark:bg-card dark:text-primary">{pct(conversion)}</span> : null}
+                {index > 0 && !item.independent && !flow[index - 1].independent ? <span className="mt-3 inline-flex rounded-full bg-white px-2.5 py-1 text-[11px] font-bold text-[#17365D] shadow-sm dark:bg-card dark:text-primary">{pct(conversion)}</span> : null}
               </div>
             );
           })}
         </div>
+        <p className="mt-5 rounded-xl border border-[#D9E0E8] bg-[#F5F7FA] px-4 py-3 text-xs leading-6 text-[#66717E] dark:border-border dark:bg-secondary/20 dark:text-muted-foreground">
+          {text.flowNote}
+        </p>
       </section>
 
       <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
@@ -246,7 +330,7 @@ export function ExecutivePhaseOne({ lang }: ExecutivePhaseOneProps) {
         <section className="rounded-3xl border border-[#D9E0E8] bg-white p-6 shadow-sm dark:border-border dark:bg-card">
           <h2 className="text-lg font-bold text-[#17365D] dark:text-foreground">{text.responsibility}</h2>
           <div className="mt-5 space-y-3 text-sm leading-6">
-            {[text.aka, text.factory, text.tehran].map((item, index) => (
+            {[text.combined, text.factory].map((item, index) => (
               <div key={item} className="flex gap-3 rounded-xl bg-[#F5F7FA] p-3 dark:bg-secondary/20">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#17365D] text-xs font-bold text-white">{index + 1}</span>
                 <span>{item}</span>
