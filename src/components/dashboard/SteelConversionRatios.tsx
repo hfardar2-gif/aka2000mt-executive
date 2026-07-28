@@ -12,44 +12,49 @@ const safeRatio = (numerator: number, denominator: number) =>
 
 export function SteelConversionRatios({ lang }: { lang: Lang }) {
   const { totals } = report;
-  const inventory = Math.max(totals.galvanized - totals.sold, 0);
-  const productionToSales = safeRatio(totals.sold, totals.galvanized);
+  const unshippedSales = Number(report.transport.underLoading) || 0;
+  const totalSold = totals.sold + unshippedSales;
+  const inventory = Math.max(totals.galvanized - totalSold, 0);
+  const productionToSales = safeRatio(totalSold, totals.galvanized);
   const productionToInventory = safeRatio(inventory, totals.galvanized);
-  const inputToSales = safeRatio(totals.sold, totals.inputCoilsTon);
+  const inputToSales = safeRatio(totalSold, totals.inputCoilsTon);
 
   const text = {
     en: {
       title: "Commercial conversion ratios",
       subtitle: "Dynamic ratios based on the latest production, sales and inventory data",
       box1: "Production disposition",
-      prodSales: "Production converted to sales",
+      prodSales: "Production converted to total sales",
       prodInventory: "Production held in inventory",
       box2: "Input commercialization",
-      inputSales: "Project input converted to completed sales",
+      inputSales: "Project input converted to total sold tonnage",
       note1: `${format(productionToSales)}% sold / ${format(productionToInventory)}% held in finished inventory`,
-      note2: `${format(inputToSales)}% of total input has reached completed-sales status`,
+      note2: `${format(inputToSales)}% of total input has reached sold status, including unshipped sold tonnage`,
+      soldLabel: "Total sold",
     },
     zh: {
       title: "商业转化比率",
       subtitle: "根据最新生产、销售及库存数据动态计算",
       box1: "产量去向",
-      prodSales: "产量转为已完成销售",
+      prodSales: "产量转为销售总量",
       prodInventory: "产量留存在成品库存",
       box2: "投入商业化",
-      inputSales: "项目投入转为已完成销售",
+      inputSales: "项目投入转为总销售吨位",
       note1: `${format(productionToSales)}%已售 / ${format(productionToInventory)}%留存在成品库存`,
-      note2: `总投入的${format(inputToSales)}%已进入已完成销售状态`,
+      note2: `总投入的${format(inputToSales)}%已进入销售状态，其中包括已售未发运吨位`,
+      soldLabel: "销售总量",
     },
     fa: {
       title: "نسبت‌های تبدیل تجاری",
       subtitle: "محاسبهٔ پویا بر اساس آخرین مقادیر تولید، فروش و موجودی",
       box1: "تعیین تکلیف تولید",
-      prodSales: "تولید تبدیل‌شده به فروش قطعی",
+      prodSales: "تولید تبدیل‌شده به کل فروش",
       prodInventory: "تولید باقی‌مانده در موجودی انبار",
       box2: "تجاری‌سازی ورودی پروژه",
-      inputSales: "ورودی تبدیل‌شده به تناژ فروش‌رفته",
-      note1: `${format(productionToSales)}٪ فروش قطعی / ${format(productionToInventory)}٪ موجودی محصول نهایی`,
-      note2: `${format(inputToSales)}٪ از کل ورودی پروژه به فروش قطعی تبدیل شده است`,
+      inputSales: "ورودی تبدیل‌شده به کل تناژ فروش‌رفته",
+      note1: `${format(productionToSales)}٪ فروش‌رفته / ${format(productionToInventory)}٪ موجودی محصول نهایی`,
+      note2: `${format(inputToSales)}٪ از کل ورودی پروژه به فروش تبدیل شده است؛ تناژ حمل‌نشده نیز در فروش لحاظ شده است`,
+      soldLabel: "کل فروش‌رفته",
     },
   }[lang];
 
@@ -92,7 +97,7 @@ export function SteelConversionRatios({ lang }: { lang: Lang }) {
           <div className="mt-5 h-3 overflow-hidden rounded-sm bg-[#424A50]"><div className="h-full bg-gradient-to-r from-[#6E9EBE] to-[#D17832] transition-[width] duration-700" style={{ width: `${Math.min(inputToSales, 100)}%` }} /></div>
           <div className="mt-4 grid grid-cols-2 gap-3 text-xs">
             <div className="rounded border border-[#41484E] bg-[#242A2F] px-3 py-2 text-[#AEB5BA]">Input <strong className="float-end text-white">{totals.inputCoilsTon.toLocaleString("en-US", { maximumFractionDigits: 0 })}</strong></div>
-            <div className="rounded border border-[#41484E] bg-[#242A2F] px-3 py-2 text-[#AEB5BA]">Sold <strong className="float-end text-white">{totals.sold.toLocaleString("en-US", { maximumFractionDigits: 0 })}</strong></div>
+            <div className="rounded border border-[#41484E] bg-[#242A2F] px-3 py-2 text-[#AEB5BA]">{text.soldLabel} <strong className="float-end text-white">{totalSold.toLocaleString("en-US", { maximumFractionDigits: 0 })}</strong></div>
           </div>
         </article>
       </div>
