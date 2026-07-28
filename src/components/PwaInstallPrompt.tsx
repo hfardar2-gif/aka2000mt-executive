@@ -71,28 +71,31 @@ export function PwaInstallPrompt() {
   };
 
   return (
-    <aside className="no-print fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-[100] mx-auto max-w-md rounded-2xl border border-[#D9E0E8] bg-white p-4 shadow-[0_12px_36px_rgba(23,54,93,0.16)] dark:border-border dark:bg-card">
+    <aside
+      dir="ltr"
+      className="no-print fixed inset-x-3 bottom-[max(12px,env(safe-area-inset-bottom))] z-[100] mx-auto max-w-md rounded-2xl border border-[#D9E0E8] bg-white p-4 text-left shadow-[0_12px_36px_rgba(23,54,93,0.16)] dark:border-border dark:bg-card"
+    >
       <div className="flex items-start gap-3">
         <img src="/aka-app-icon.svg" alt="AKA" className="h-12 w-12 shrink-0 rounded-xl" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-[#17365D] dark:text-foreground">
-            {updateReady ? "نسخهٔ جدید آماده است" : "نصب داشبورد روی موبایل"}
+            {updateReady ? "A new version is available" : "Install the dashboard app"}
           </p>
           <p className="mt-1 text-xs leading-6 text-[#66717E] dark:text-muted-foreground">
             {updateReady
-              ? "برای دریافت آخرین نسخه، صفحه را به‌روزرسانی کنید."
+              ? "Refresh the app to load the latest version."
               : showIosHelp
-                ? "در Safari روی Share بزنید و سپس Add to Home Screen را انتخاب کنید."
-                : "داشبورد را مانند یک اپ مستقل روی صفحهٔ اصلی نصب کنید."}
+                ? "In Safari, tap Share and then select Add to Home Screen."
+                : "Install the dashboard on your home screen and open it like a standalone app."}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             {updateReady ? (
               <button type="button" onClick={reloadForUpdate} className="min-h-11 rounded-lg bg-[#17365D] px-4 text-xs font-semibold text-white">
-                به‌روزرسانی
+                Update
               </button>
             ) : installPrompt ? (
               <button type="button" onClick={install} className="min-h-11 rounded-lg bg-[#17365D] px-4 text-xs font-semibold text-white">
-                نصب اپ
+                Install app
               </button>
             ) : null}
             <button
@@ -104,7 +107,7 @@ export function PwaInstallPrompt() {
               }}
               className="min-h-11 rounded-lg border border-[#D9E0E8] px-4 text-xs font-semibold text-[#66717E] dark:border-border dark:text-muted-foreground"
             >
-              بعداً
+              Later
             </button>
           </div>
         </div>
