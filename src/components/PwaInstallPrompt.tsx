@@ -5,27 +5,44 @@ type DeferredInstallPrompt = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 };
 
-const isIos = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-const isStandalone = () =>
-  window.matchMedia("(display-mode: standalone)").matches ||
-  Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
+const isBrowser = () => typeof window !== "undefined" && typeof navigator !== "undefined";
+
+const isIos = () => isBrowser() && /iphone|ipad|ipod/i.test(window.navigator.userAgent);
+
+const isStandalone = () => {
+  if (!isBrowser()) return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
+  );
+};
 
 export function PwaInstallPrompt() {
+  const [mounted, setMounted] = useState(false);
+  const [standalone, setStandalone] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<DeferredInstallPrompt | null>(null);
   const [showIosHelp, setShowIosHelp] = useState(false);
   const [updateReady, setUpdateReady] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+    setStandalone(isStandalone());
+
     if (!("serviceWorker" in navigator)) return;
 
-    navigator.serviceWorker.register("/sw.js").then((registration) => {
-      registration.addEventListener("updatefound", () => {
-        const worker = registration.installing;
-        worker?.addEventListener("statechange", () => {
-          if (worker.state === "installed" && navigator.serviceWorker.controller) setUpdateReady(true);
+    navigator.serviceWorker
+      .register("/sw.js")
+      .then((registration) => {
+        registration.addEventListener("updatefound", () => {
+          const worker = registration.installing;
+          worker?.addEventListener("statechange", () => {
+            if (worker.state === "installed" && navigator.serviceWorker.controller) {
+              setUpdateReady(true);
+            }
+          });
         });
-      });
-    }).catch(() => undefined);
+      })
+      .catch(() => undefined);
 
     const beforeInstall = (event: Event) => {
       event.preventDefault();
@@ -34,10 +51,11 @@ export function PwaInstallPrompt() {
 
     window.addEventListener("beforeinstallprompt", beforeInstall);
     if (isIos() && !isStandalone()) setShowIosHelp(true);
+
     return () => window.removeEventListener("beforeinstallprompt", beforeInstall);
   }, []);
 
-  if (isStandalone() || (!installPrompt && !showIosHelp && !updateReady)) return null;
+  if (!mounted || standalone || (!installPrompt && !showIosHelp && !updateReady)) return null;
 
   const install = async () => {
     if (!installPrompt) return;
