@@ -1,0 +1,44 @@
+{
+  "name": "AKA Executive Dashboard",
+  "short_name": "AKA Dashboard",
+  "description": "Executive production, sales, inventory and project reporting dashboard.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#f4f6f8",
+  "theme_color": "#17365d",
+  "lang": "fa",
+  "dir": "rtl",
+  "categories": ["business", "productivity"],
+  "icons": [
+    {
+      "src": "/aka-app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/aka-app-icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "url": "/",
+      "icons": [{ "src": "/aka-app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Excel Deploy",
+      "short_name": "Excel",
+      "url": "/report-publisher",
+      "icons": [{ "src": "/aka-app-icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}
