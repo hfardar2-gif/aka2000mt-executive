@@ -1,13 +1,13 @@
 {
-  "reportDate": "2026-07-26",
-  "version": "3.1",
+  "reportDate": "2026-07-28",
+  "version": "3.2",
   "totals": {
     "inputCoilsTon": 2826.212,
     "inputCoilsQty": 165,
     "pickling": 2687.25,
     "rolling": 2371.201,
     "galvanized": 2159.316,
-    "sold": 775.981
+    "sold": 956.401
   },
   "warehouse": [
     {
@@ -24,7 +24,7 @@
     },
     {
       "name": "Galvanied",
-      "ton": 1383.3349999999998
+      "ton": 1202.915
     }
   ],
   "scrap": [
@@ -48,11 +48,11 @@
     },
     {
       "k": "Warehouse + WIP-Sold",
-      "v": 1383.3349999999998
+      "v": 1202.915
     },
     {
       "k": "Ready to ship",
-      "v": 1383.3349999999998
+      "v": 1202.915
     },
     {
       "k": "Total Scrap",
@@ -441,6 +441,22 @@
       "pickling": 84.8,
       "rolling": 48.7,
       "galv": 49.85200000000009
+    },
+    {
+      "date": "2026-07-15",
+      "inputTon": 2706.8,
+      "inputQty": 158,
+      "pickling": 330.909,
+      "rolling": 68,
+      "galv": 181.59
+    },
+    {
+      "date": "2026-07-24",
+      "inputTon": 2826.212,
+      "inputQty": 165,
+      "pickling": 0,
+      "rolling": 0,
+      "galv": 0
     }
   ],
   "cumulative": [
@@ -857,6 +873,24 @@
       "rolling": 2100.649,
       "galv": 1774.881,
       "sold": 754.194
+    },
+    {
+      "date": "2026-07-15",
+      "inputTon": 2706.8,
+      "inputQty": 2467.6580000000004,
+      "pickling": 2467.6580000000004,
+      "rolling": 2168.649,
+      "galv": 1956.471,
+      "sold": 754.194
+    },
+    {
+      "date": "2026-07-24",
+      "inputTon": 2826.212,
+      "inputQty": 2467.6580000000004,
+      "pickling": 2467.6580000000004,
+      "rolling": 2168.649,
+      "galv": 1956.471,
+      "sold": 956.401
     }
   ],
   "coating": [
@@ -959,31 +993,31 @@
     {
       "date": "2026-06-20",
       "buyer": "Dashtestan",
-      "tonnage": 82.565,
+      "tonnage": 82.535,
       "amount": 128801400000
     },
     {
       "date": "2026-07-01",
       "buyer": "Hoshmand glv.",
-      "tonnage": 99.52,
+      "tonnage": 342.66499999999996,
       "amount": 136341902400
     },
     {
       "date": "2026-07-14",
       "buyer": "Dashtestan",
-      "tonnage": 331.16,
+      "tonnage": 342.66499999999996,
       "amount": 500993175000
     },
     {
-      "date": "2026-07-26",
-      "buyer": "Tehran Galv.",
-      "tonnage": 284,
+      "date": "2026-07-24",
+      "buyer": "Tehran GLV Borna",
+      "tonnage": 180.42,
       "amount": 459165157000
     }
   ],
   "transport": {
-    "underLoading": 284,
-    "readyWarehouse": 1383.3349999999998
+    "underLoading": 104,
+    "readyWarehouse": 1202.915
   },
   "plan": [
     {
@@ -1029,7 +1063,7 @@
       "status": "Complete at 2026-07-10"
     },
     {
-      "date": "2026-07-30",
+      "date": "2026-08-15",
       "thickness": "0.40,0.48,0.5,08",
       "width": 1000,
       "tons": 826,
@@ -1043,7 +1077,7 @@
     "4.Following extensive discussions, repeated follow-ups, and the strict requirement to segregate our production coils, a dedicated section of the cutting production hall has been officially designated as the exclusive storage warehouse for AKA Company's production coils.",
     "5. To cover the customs clearance and transportation costs of 46 HRC coils stored at customs, amounting to IRR 140 billion, a total of 82 metric tons of galvanized coils (GLC) were sold by Foolad Dashtestan. The proceeds from this sale were allocated to and fully settled the aforementioned expenses.",
     "6. In view of the warehouse capacity constraints, daily production planning will be implemented for the AKA project. Production will proceed progressively and in accordance with the available storage capacity. The manufacturing pace will be continuously regulated to optimize inventory levels, avoid warehouse congestion, and ensure the sustainable continuation of production activities.",
-    "7.In accordance with the issued sales proforma invoice, a quantity of 284 metric tons has been reserved for Tehran Galvanize Company and is currently ready to ship. Shipment will proceed upon receipt of payment. Please kindly note that the exact consignment weight is considered provisional until the loading and weighbridge verification are fully completed. The final, accurate figures will be substituted and confirmed immediately upon the conclusion of the loading process."
+    "7.In accordance with the issued sales pre proforma invoice, a quantity of 284 metric tons has been reserved for Tehran Galvanize Company and is currently ready to ship. Shipment will proceed upon receipt of payment. Please kindly note that the exact consignment weight is considered provisional until the loading and weighbridge verification are fully completed. The final, accurate figures will be substituted and confirmed immediately upon the conclusion of the loading process."
   ],
   "signature": {
     "role": "AKA Technical Representative",
@@ -1085,7 +1119,7 @@
     {
       "thickness": 0.4,
       "width": 1000,
-      "tonnage": 181.24
+      "tonnage": 100.51
     },
     {
       "thickness": 0.45,
@@ -1095,12 +1129,12 @@
     {
       "thickness": 0.48,
       "width": 1000,
-      "tonnage": 198.24
+      "tonnage": 148.08
     },
     {
       "thickness": 0.5,
       "width": 1000,
-      "tonnage": 372.275
+      "tonnage": 322.745
     },
     {
       "thickness": 0.6,
