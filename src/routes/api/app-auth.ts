@@ -32,7 +32,7 @@ const digest = async (value: string) => {
 const sessionCookie = (value: string, maxAge: number) =>
   `${COOKIE_NAME}=${encodeURIComponent(value)}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${maxAge}`;
 
-const configuredPassword = () => process.env.DATA_ENTRY_PASSWORD;
+const configuredPassword = () => process.env.APP_ACCESS_PASSWORD;
 
 const isAuthenticated = async (request: Request, password: string) => {
   const expected = await digest(password);
@@ -45,7 +45,7 @@ export const Route = createFileRoute("/api/app-auth")({
     handlers: {
       GET: async ({ request }) => {
         const password = configuredPassword();
-        if (!password) return jsonError("Application password is not configured.", 500);
+        if (!password) return jsonError("APP_ACCESS_PASSWORD is not configured in Cloudflare.", 500);
         const authenticated = await isAuthenticated(request, password);
         return Response.json({ ok: true, authenticated });
       },
@@ -72,7 +72,7 @@ export const Route = createFileRoute("/api/app-auth")({
         if (body.action !== "login") return jsonError("Unsupported action.", 400);
 
         const password = configuredPassword();
-        if (!password) return jsonError("Application password is not configured.", 500);
+        if (!password) return jsonError("APP_ACCESS_PASSWORD is not configured in Cloudflare.", 500);
         if (typeof body.password !== "string" || body.password !== password) {
           return jsonError("Incorrect password.", 401);
         }
