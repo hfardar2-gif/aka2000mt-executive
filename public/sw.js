@@ -1,4 +1,4 @@
-const CACHE_NAME = "aka-dashboard-v2";
+const CACHE_NAME = "aka-dashboard-v3";
 const APP_SHELL = [
   "/offline.html",
   "/manifest.webmanifest",
@@ -32,6 +32,8 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
+  if (url.pathname.startsWith("/api/")) return;
+
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request, { cache: "no-store" })
@@ -41,7 +43,14 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  if (["style", "script", "image", "font"].includes(request.destination)) {
+  if (["style", "script"].includes(request.destination)) {
+    event.respondWith(
+      fetch(request, { cache: "no-store" }).catch(() => caches.match(request)),
+    );
+    return;
+  }
+
+  if (["image", "font"].includes(request.destination)) {
     event.respondWith(
       caches.match(request).then((cached) => {
         const network = fetch(request)
