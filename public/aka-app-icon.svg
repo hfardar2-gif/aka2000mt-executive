@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">AKA Executive Dashboard</title>
+  <desc id="desc">AKA initials on a blue executive dashboard icon</desc>
+  <rect width="512" height="512" rx="112" fill="#17365d"/>
+  <path d="M96 352 184 152h48l88 200h-54l-18-46H166l-18 46H96Zm87-90h48l-24-62-24 62Z" fill="#fff"/>
+  <path d="M286 152h50v77l68-77h62l-82 91 88 109h-64l-58-75-14 15v60h-50V152Z" fill="#5ec6d2"/>
+  <rect x="94" y="382" width="324" height="16" rx="8" fill="#f4a340"/>
+</svg>
