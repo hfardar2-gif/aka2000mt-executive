@@ -1,5 +1,17 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
+const REQUEST_TIMEOUT_MS = 8000;
+
+const fetchWithTimeout = async (input: RequestInfo | URL, init: RequestInit = {}) => {
+  const controller = new AbortController();
+  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    window.clearTimeout(timeout);
+  }
+};
+
 export function AppAccessGate({ children }: { children: ReactNode }) {
   const [checking, setChecking] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
@@ -18,10 +30,11 @@ export function AppAccessGate({ children }: { children: ReactNode }) {
 
     const checkSession = async () => {
       try {
-        const response = await fetch("/api/app-auth", {
+        const response = await fetchWithTimeout(`/api/app-auth?t=${Date.now()}`, {
           method: "GET",
           cache: "no-store",
-          credentials: "same-origin",
+          credentials: "include",
+          headers: { Accept: "application/json" },
         });
         const result = (await response.json().catch(() => ({}))) as {
           authenticated?: boolean;
@@ -34,8 +47,14 @@ export function AppAccessGate({ children }: { children: ReactNode }) {
         } else if (!response.ok) {
           setMessage(result.message || "Authentication service is unavailable.");
         }
-      } catch {
-        if (!cancelled) setMessage("Authentication service is unavailable.");
+      } catch (error) {
+        if (!cancelled) {
+          setMessage(
+            error instanceof DOMException && error.name === "AbortError"
+              ? "The access check took too long. Please enter your password."
+              : "Authentication service is unavailable. Please enter your password.",
+          );
+        }
       } finally {
         if (!cancelled) setChecking(false);
       }
@@ -54,10 +73,11 @@ export function AppAccessGate({ children }: { children: ReactNode }) {
     setMessage("");
 
     try {
-      const response = await fetch("/api/app-auth", {
+      const response = await fetchWithTimeout("/api/app-auth", {
         method: "POST",
-        credentials: "same-origin",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ action: "login", password }),
       });
       const result = (await response.json().catch(() => ({}))) as {
@@ -72,7 +92,13 @@ export function AppAccessGate({ children }: { children: ReactNode }) {
       setPassword("");
       setAuthenticated(true);
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "Incorrect password.");
+      setMessage(
+        error instanceof DOMException && error.name === "AbortError"
+          ? "The sign-in request timed out. Please try again."
+          : error instanceof Error
+            ? error.message
+            : "Incorrect password.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -84,6 +110,13 @@ export function AppAccessGate({ children }: { children: ReactNode }) {
         <div className="text-center">
           <img src="/aka-app-icon.svg" alt="AKA" className="mx-auto h-16 w-16 rounded-2xl" />
           <p className="mt-4 text-sm text-muted-foreground">Checking access…</p>
+          <button
+            type="button"
+            onClick={() => setChecking(false)}
+            className="mt-5 min-h-11 rounded-lg border border-border bg-card px-4 text-sm font-medium text-foreground"
+          >
+            Enter password manually
+          </button>
         </div>
       </main>
     );
