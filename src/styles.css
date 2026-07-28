@@ -191,17 +191,35 @@
   main > div, main > section { max-width: 100%; }
   section { scroll-margin-top: calc(64px + var(--safe-top)); }
   section.rounded-2xl { border-radius: 14px; }
-  table {
-    display: block;
-    width: 100%;
+
+  .overflow-x-auto,
+  .overflow-auto,
+  div:has(> table),
+  section:has(> table) {
     max-width: 100%;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
+    overflow-x: auto !important;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
     -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+
+  table {
+    display: table;
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
     white-space: nowrap;
   }
-  thead, tbody { width: max-content; min-width: 100%; }
-  th, td { min-width: 104px; }
+
+  thead { display: table-header-group; }
+  tbody { display: table-row-group; }
+  tr { display: table-row; }
+  th, td {
+    display: table-cell;
+    min-width: 104px;
+  }
+
   .recharts-responsive-container { min-height: 260px; }
   [role="dialog"] {
     max-height: 88dvh;
