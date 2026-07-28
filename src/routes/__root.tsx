@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CoilInventoryEnhancer } from "../components/dashboard/CoilInventoryEnhancer";
 import { PwaInstallPrompt } from "../components/PwaInstallPrompt";
+import { AppAccessGate } from "../components/AppAccessGate";
 
 function NotFoundComponent() {
   return (
@@ -110,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="light">
+    <html lang="en" dir="ltr" className="light">
       <head>
         <HeadContent />
       </head>
@@ -122,11 +123,9 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
-function RootComponent() {
-  const { queryClient } = Route.useRouteContext();
-
+function ProtectedApplication() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <>
       <CoilInventoryEnhancer />
       <PwaInstallPrompt />
       <nav className="mobile-safe-header no-print sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
@@ -159,6 +158,18 @@ function RootComponent() {
         </div>
       </nav>
       <Outlet />
+    </>
+  );
+}
+
+function RootComponent() {
+  const { queryClient } = Route.useRouteContext();
+
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppAccessGate>
+        <ProtectedApplication />
+      </AppAccessGate>
     </QueryClientProvider>
   );
 }
