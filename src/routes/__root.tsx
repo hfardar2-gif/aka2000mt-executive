@@ -15,6 +15,7 @@ import { CoilInventoryEnhancer } from "../components/dashboard/CoilInventoryEnha
 import { PwaInstallPrompt } from "../components/PwaInstallPrompt";
 import { AppAccessGate } from "../components/AppAccessGate";
 import { ExecutiveReportExporter } from "../components/ExecutiveReportExporter";
+import { IosExecutiveReportFix } from "../components/IosExecutiveReportFix";
 
 function NotFoundComponent() {
   return (
@@ -129,6 +130,7 @@ function ProtectedApplication() {
     <>
       <CoilInventoryEnhancer />
       <PwaInstallPrompt />
+      <IosExecutiveReportFix />
       <ExecutiveReportExporter />
       <nav className="mobile-safe-header no-print sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-3 py-2 text-sm sm:gap-4 sm:px-6">
