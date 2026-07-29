@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { CoilInventoryEnhancer } from "../components/dashboard/CoilInventoryEnhancer";
 import { PwaInstallPrompt } from "../components/PwaInstallPrompt";
 import { AppAccessGate } from "../components/AppAccessGate";
+import { ExecutiveReportExporter } from "../components/ExecutiveReportExporter";
 
 function NotFoundComponent() {
   return (
@@ -128,6 +129,7 @@ function ProtectedApplication() {
     <>
       <CoilInventoryEnhancer />
       <PwaInstallPrompt />
+      <ExecutiveReportExporter />
       <nav className="mobile-safe-header no-print sticky top-0 z-50 border-b border-border bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center gap-2 overflow-x-auto px-3 py-2 text-sm sm:gap-4 sm:px-6">
           <Link
