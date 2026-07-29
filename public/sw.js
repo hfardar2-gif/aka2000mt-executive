@@ -1,4 +1,4 @@
-const CACHE_NAME = "aka-dashboard-v3";
+const CACHE_NAME = "aka-dashboard-v4";
 const APP_SHELL = [
   "/offline.html",
   "/manifest.webmanifest",
@@ -44,9 +44,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (["style", "script"].includes(request.destination)) {
-    event.respondWith(
-      fetch(request, { cache: "no-store" }).catch(() => caches.match(request)),
-    );
+    event.respondWith(fetch(request, { cache: "no-store" }).catch(() => caches.match(request)));
     return;
   }
 
