@@ -12,7 +12,7 @@
   "warehouse": [
     {
       "name": "Unpickled",
-      "ton": 86.9989999999998
+      "ton": 86.769
     },
     {
       "name": "Pickled",
@@ -24,7 +24,7 @@
     },
     {
       "name": "Galvanied",
-      "ton": 1084.7100000000005
+      "ton": 1084.94
     }
   ],
   "scrap": [
