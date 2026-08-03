@@ -913,17 +913,17 @@
       "inputTon": 2826.212,
       "inputQty": 2467.6580000000004,
       "pickling": 2467.6580000000004,
-      "rolling": 0,
-      "galv": 0,
+      "rolling": 2168.649,
+      "galv": 2139.591,
       "sold": 0
     },
     {
-      "date": "",
-      "inputTon": 0,
-      "inputQty": 0,
-      "pickling": 0,
-      "rolling": 0,
-      "galv": 0,
+      "date": "2026-08-03",
+      "inputTon": 2826.212,
+      "inputQty": 2467.6580000000004,
+      "pickling": 2168.649,
+      "rolling": 2168.649,
+      "galv": 2139.591,
       "sold": 0
     }
   ],
