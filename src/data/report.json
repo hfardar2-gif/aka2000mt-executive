@@ -457,6 +457,22 @@
       "pickling": 180.909,
       "rolling": 0,
       "galv": 183.12
+    },
+    {
+      "date": "2026-08-01",
+      "inputTon": 2826.212,
+      "inputQty": 165,
+      "pickling": 0,
+      "rolling": 0,
+      "galv": 0
+    },
+    {
+      "date": "",
+      "inputTon": 0,
+      "inputQty": 0,
+      "pickling": 0,
+      "rolling": 0,
+      "galv": 0
     }
   ],
   "cumulative": [
