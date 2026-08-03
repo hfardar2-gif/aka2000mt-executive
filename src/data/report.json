@@ -467,9 +467,9 @@
       "galv": 0
     },
     {
-      "date": "",
-      "inputTon": 0,
-      "inputQty": 0,
+      "date": "2026-08-03",
+      "inputTon": 2826.212,
+      "inputQty": 165,
       "pickling": 0,
       "rolling": 0,
       "galv": 0
@@ -907,6 +907,24 @@
       "rolling": 2168.649,
       "galv": 2139.591,
       "sold": 956.401
+    },
+    {
+      "date": "2026-08-01",
+      "inputTon": 2826.212,
+      "inputQty": 0,
+      "pickling": 0,
+      "rolling": 0,
+      "galv": 0,
+      "sold": 0
+    },
+    {
+      "date": "",
+      "inputTon": 0,
+      "inputQty": 0,
+      "pickling": 0,
+      "rolling": 0,
+      "galv": 0,
+      "sold": 0
     }
   ],
   "coating": [
