@@ -92,12 +92,14 @@ export const Route = createFileRoute("/api/publish-report")({
           return jsonError("Invalid JSON request.", 400);
         }
 
-        // Use a dedicated data-entry password when configured. Otherwise fall
-        // back to the main application password so the management page never
-        // becomes inaccessible because only one Cloudflare secret was set.
-        const configuredPassword =
-          process.env.DATA_ENTRY_PASSWORD || process.env.APP_ACCESS_PASSWORD;
-        if (!configuredPassword) {
+        // Accept the dedicated data-entry password and the main application
+        // password. This keeps existing installations working whether one or
+        // both Cloudflare secrets are configured.
+        const configuredPasswords = [
+          process.env.DATA_ENTRY_PASSWORD,
+          process.env.APP_ACCESS_PASSWORD,
+        ].filter((value): value is string => Boolean(value));
+        if (configuredPasswords.length === 0) {
           return jsonError(
             "Neither DATA_ENTRY_PASSWORD nor APP_ACCESS_PASSWORD is configured in Cloudflare.",
             500,
@@ -107,7 +109,7 @@ export const Route = createFileRoute("/api/publish-report")({
         if (
           typeof body.password !== "string" ||
           body.password.length === 0 ||
-          body.password !== configuredPassword
+          !configuredPasswords.includes(body.password)
         ) {
           return jsonError("Incorrect password.", 401);
         }
