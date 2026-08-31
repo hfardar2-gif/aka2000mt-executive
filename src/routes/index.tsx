@@ -351,34 +351,8 @@ function Index() {
           </div>
         </ReportSection>
 
-        <ReportSection title={t("coating")} icon={<Factory />}>
-          <DataTable
-            headers={[
-              "Thickness (mm)",
-              "Width (mm)",
-              "Produced (t)",
-              "Theoretical Zn (kg)",
-              "Loss (kg)",
-              "Actual coating (kg)",
-            ]}
-            rows={report.coating.map((r) => [
-              r.thickness,
-              r.width,
-              fmt(r.producedWeight),
-              fmt(r.theoreticalZinc),
-              fmt(r.loss),
-              fmt(r.actualCoating),
-            ])}
-            total={[
-              "Total",
-              "",
-              fmt(report.totals.galvanized),
-              fmt(report.massBalance[1].value),
-              fmt(report.massBalance[3].value),
-              fmt(report.massBalance[2].value),
-            ]}
-          />
-          <div className="mt-5 grid gap-3 md:grid-cols-5">
+        <ReportSection title={t("massBalance")} icon={<Factory />}>
+          <div className="grid gap-3 md:grid-cols-5">
             {report.massBalance.map((r) => (
               <Metric
                 key={r.key}
