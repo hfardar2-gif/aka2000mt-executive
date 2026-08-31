@@ -61,9 +61,7 @@ const validateReport = (value: unknown): value is JsonObject => {
     "notes",
   ];
 
-  return arrayKeys.every(
-    (key) => value[key] === undefined || Array.isArray(value[key]),
-  );
+  return arrayKeys.every((key) => value[key] === undefined || Array.isArray(value[key]));
 };
 
 const githubHeaders = (token: string) => ({
@@ -94,10 +92,14 @@ export const Route = createFileRoute("/api/publish-report")({
           return jsonError("Invalid JSON request.", 400);
         }
 
-        const configuredPassword = process.env.DATA_ENTRY_PASSWORD;
+        // Use a dedicated data-entry password when configured. Otherwise fall
+        // back to the main application password so the management page never
+        // becomes inaccessible because only one Cloudflare secret was set.
+        const configuredPassword =
+          process.env.DATA_ENTRY_PASSWORD || process.env.APP_ACCESS_PASSWORD;
         if (!configuredPassword) {
           return jsonError(
-            "DATA_ENTRY_PASSWORD is not configured in Cloudflare.",
+            "Neither DATA_ENTRY_PASSWORD nor APP_ACCESS_PASSWORD is configured in Cloudflare.",
             500,
           );
         }
@@ -131,19 +133,15 @@ export const Route = createFileRoute("/api/publish-report")({
         const branch = process.env.GITHUB_BRANCH || "main";
 
         if (!token || !owner || !repo) {
-          return jsonError(
-            "GitHub publishing variables are incomplete in Cloudflare.",
-            500,
-          );
+          return jsonError("GitHub publishing variables are incomplete in Cloudflare.", 500);
         }
 
         const apiUrl = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${REPORT_PATH}`;
         const headers = githubHeaders(token);
 
-        const currentResponse = await fetch(
-          `${apiUrl}?ref=${encodeURIComponent(branch)}`,
-          { headers },
-        );
+        const currentResponse = await fetch(`${apiUrl}?ref=${encodeURIComponent(branch)}`, {
+          headers,
+        });
 
         const current = (await currentResponse.json().catch(() => ({}))) as GitHubFileResponse;
         if (!currentResponse.ok || !current.sha) {
@@ -189,7 +187,8 @@ export const Route = createFileRoute("/api/publish-report")({
 
         return Response.json({
           ok: true,
-          message: "Report committed successfully. Cloudflare deployment should start automatically.",
+          message:
+            "Report committed successfully. Cloudflare deployment should start automatically.",
           commitSha: updated.commit.sha,
           commitUrl:
             updated.commit.html_url ||
