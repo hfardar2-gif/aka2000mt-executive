@@ -1,6 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type ReactNode } from "react";
-import { FileText, Languages, MessageSquare, Moon, Printer, Sun, X } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  AlertTriangle,
+  BarChart3,
+  Boxes,
+  CalendarDays,
+  CircleDollarSign,
+  Factory,
+  Languages,
+  PackageCheck,
+  Printer,
+  Ship,
+  TrendingUp,
+} from "lucide-react";
 import {
   Bar,
   BarChart,
@@ -16,827 +28,725 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import report from "@/data/report.json";
-import { StatCard } from "@/components/dashboard/StatCard";
-import { Section } from "@/components/dashboard/Section";
+import rawReport from "@/data/report.json";
+import { reportChecks, sum, type AKAProjectReport, type ReportLanguage } from "@/lib/report-model";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "AKA Project Report — Production Dashboard" },
+      { title: "AKA Project Management Report | AKA 项目管理报告" },
       {
         name: "description",
         content:
-          "Live management dashboard for the AKA galvanizing project: production, yields, inventory, sales and planning.",
-      },
-      { property: "og:title", content: "AKA Project Report" },
-      {
-        property: "og:description",
-        content: "Production, yield, coil inventory, warehouse and sales overview for the AKA project.",
+          "Executive production, inventory, sales and financial report for the AKA galvanizing project.",
       },
     ],
   }),
   component: Index,
 });
 
-const fmt = (n: number | null | undefined, digits = 2) =>
-  typeof n === "number"
-    ? n.toLocaleString("en-US", {
-        minimumFractionDigits: digits,
-        maximumFractionDigits: digits,
-      })
-    : "—";
+const report = rawReport as AKAProjectReport;
+const fmt = (value: number, digits = 3) =>
+  value.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits });
+const fmtRial = (value: number) => value.toLocaleString("en-US");
+const COLORS = ["#0f6f8f", "#2aa37a", "#f0a23b", "#cf4d5c"];
 
-const fmt0 = (n: number | null | undefined) =>
-  typeof n === "number" ? n.toLocaleString("en-US", { maximumFractionDigits: 0 }) : "—";
-
-const fmtRial = (value: unknown) => {
-  const parsed = Number(String(value ?? "").replace(/[^\d.-]/g, ""));
-  if (!Number.isFinite(parsed) || parsed === 0) return "—";
-  if (parsed >= 1e9) return `${(parsed / 1e9).toFixed(2)} B`;
-  if (parsed >= 1e6) return `${(parsed / 1e6).toFixed(2)} M`;
-  return parsed.toLocaleString("en-US");
-};
-
-const CHART_COLORS = [
-  "var(--color-chart-1)",
-  "var(--color-chart-2)",
-  "var(--color-chart-3)",
-  "var(--color-chart-4)",
-  "var(--color-chart-5)",
-];
-
-type Lang = "en" | "zh" | "fa";
-type CoilInventoryRow = {
-  thickness: number | string;
-  width: number | string;
-  tonnage: number;
-};
-type LocalizedText = string | Partial<Record<Lang, string>> & { note?: string };
-
-const localizedText = (value: unknown, lang: Lang) => {
-  if (typeof value === "string") return value;
-  if (!value || typeof value !== "object") return "";
-
-  const text = value as Partial<Record<Lang, unknown>> & { note?: unknown };
-  const selected = text[lang];
-  const fallback = text.en ?? text.fa ?? text.zh ?? text.note;
-  return typeof selected === "string" ? selected : typeof fallback === "string" ? fallback : "";
-};
-
-const noteTranslations: Record<Exclude<Lang, "en">, string[]> = {
-  fa: [
-    "۱. هر کویل گالوانیزهٔ تولیدشده، بلافاصله در برنامهٔ فروش و ارسال قرار می‌گیرد.",
-    "۲. هزینهٔ بارنامه‌های حمل از بندر تا کارخانه، بهای روی و زاماک، هزینهٔ ۲٫۵ درصدی انبار متروکه و باقی‌ماندهٔ حق‌العمل ترخیص‌کار، در برابر فاکتورهای رسمی و از محل فروش ۱۵۰ تن محصول گالوانیزه (HDG) توسط فولاد دشتستان تسویه خواهد شد. برای جزئیات به جدول گزارش فروش مورخ ۲۰۲۶-۰۵-۱۷ مراجعه شود.",
-    "۳. به‌علت تکمیل ظرفیت انبار محصولات، برنامهٔ تولید تحت تأثیر قرار گرفته است. با آزادشدن هر میزان از فضای انبار، تولید گالوانیزه از سر گرفته خواهد شد.",
-    "۴. پس از گفت‌وگوهای گسترده، پیگیری‌های مکرر و تأکید بر جداسازی کویل‌های تولیدی ما، بخشی اختصاصی از سالن تولید برش رسماً به‌عنوان انبار ویژهٔ کویل‌های تولیدی شرکت آکا تعیین شد.",
-    "۵. برای تأمین ۱۴۰ میلیارد ریال هزینهٔ ترخیص و حمل ۴۶ کویل HRC موجود در گمرک، فولاد دشتستان در مجموع ۸۲ تن کویل گالوانیزه (GLC) فروخت و درآمد حاصل را به‌طور کامل صرف تسویهٔ هزینه‌های یادشده کرد.",
-    "۶. با توجه به محدودیت ظرفیت انبار، برنامه‌ریزی تولید پروژهٔ آکا به‌صورت روزانه انجام می‌شود. تولید متناسب با فضای موجود، مرحله‌به‌مرحله پیش خواهد رفت و سرعت آن برای بهینه‌سازی موجودی، جلوگیری از ازدحام انبار و تداوم پایدار فعالیت‌های تولیدی پیوسته تنظیم خواهد شد.",
-    "۷. مطابق پیش‌فاکتور فروش صادرشده، ۲۸۴ تن محصول برای شرکت گالوانیزه تهران رزرو و آمادهٔ ارسال است. ارسال پس از دریافت وجه انجام می‌شود. وزن دقیق محموله تا پایان بارگیری و تأیید باسکول، موقت تلقی می‌شود و ارقام نهایی بلافاصله پس از اتمام بارگیری ثبت و تأیید خواهد شد.",
-  ],
-  zh: [
-    "1. 每卷生产完成的镀锌卷都会立即纳入销售和发运计划。",
-    "2. 从港口到工厂的运输单费用、锌和扎马克合金费用、2.5%的弃置仓储费以及剩余报关代理费，将依据正式发票，通过Foolad Dashtestan销售150公吨镀锌产品（HDG）的款项结算。详情请参阅2026-05-17销售报告表。",
-    "3. 由于产品仓库已满，生产计划受到影响。仓库一旦腾出任何空间，即恢复镀锌生产。",
-    "4. 经过充分协商、多次跟进，并严格要求将我方生产卷材分区存放后，切割生产车间内的一处专用区域已正式划定为AKA公司生产卷材的独立仓库。",
-    "5. 为支付海关存放的46卷HRC卷材所产生的报关及运输费用（共计1,400亿里亚尔），Foolad Dashtestan销售了82公吨镀锌卷（GLC）；销售收入已全部用于结清上述费用。",
-    "6. 鉴于仓储容量受限，AKA项目将实行每日生产计划。生产将根据可用仓储空间逐步推进，并持续调节生产节奏，以优化库存、避免仓库拥堵并确保生产活动持续稳定。",
-    "7. 根据已开具的销售形式发票，284公吨产品已为Tehran Galvanize Company预留并可随时发运。收到货款后安排发运。在装货及地磅核验全部完成前，准确货重均为暂定值；装货结束后将立即更新并确认最终数据。",
-  ],
-};
-
-const noteText = (value: LocalizedText, index: number, lang: Lang) => {
-  if (typeof value !== "string") return localizedText(value, lang);
-  return lang === "en" ? value : noteTranslations[lang][index] ?? value;
-};
-
-const translations: Record<string, Record<Lang, string>> = {
-  badge: { en: "Management Report", zh: "管理报告", fa: "گزارش مدیریتی" },
-  title: { en: "AKA Project Report", zh: "AKA 项目报告", fa: "گزارش پروژه آکا" },
-  subtitle: {
-    en: "Cumulative production, yield, coil inventory, warehouse balance, sales and planning for the galvanizing line.",
-    zh: "镀锌生产线的累计产量、良率、卷材库存、仓库、销售与计划。",
-    fa: "تولید تجمعی، راندمان، موجودی کویل‌ها، موجودی انبار، فروش و برنامه‌ریزی خط گالوانیزه.",
+const labels: Record<string, Record<ReportLanguage, string>> = {
+  executiveReport: {
+    zh: "管理层执行报告",
+    en: "Executive Management Report",
+    fa: "گزارش اجرایی مدیریت",
   },
-  reportDate: { en: "Report date", zh: "报告日期", fa: "تاریخ گزارش" },
-  version: { en: "Version", zh: "版本", fa: "نسخه" },
-  statusOk: { en: "Status: Success", zh: "状态：成功", fa: "وضعیت: موفق" },
-  statusFail: { en: "Status: Failed", zh: "状态：失败", fa: "وضعیت: ناموفق" },
-  lastUpdated: { en: "Last updated:", zh: "最后更新：", fa: "آخرین به‌روزرسانی:" },
-  inputCoils: { en: "Input Coil Tonnage", zh: "输入卷材吨位", fa: "تناژ کویل‌های ورودی" },
-  inputCoilCount: { en: "Input Coil Count", zh: "输入卷材数量", fa: "تعداد کویل‌های ورودی" },
-  pickling: { en: "Pickling", zh: "酸洗", fa: "اسیدشویی" },
-  rolling: { en: "Rolling", zh: "轧制", fa: "نورد" },
-  galvanized: { en: "Galvanized", zh: "镀锌", fa: "گالوانیزه" },
-  sold: { en: "Sold", zh: "已售", fa: "فروش رفته" },
-  readyToShip: { en: "Ready to ship", zh: "待发货", fa: "آماده ارسال" },
-  ton: { en: "ton", zh: "吨", fa: "تن" },
-  coils: { en: "coils", zh: "卷", fa: "کویل" },
-  coilInventory: { en: "Coil Inventory", zh: "卷材库存", fa: "موجودی کویل‌ها" },
-  coilInventorySub: {
-    en: "Available coils by thickness and width",
-    zh: "按厚度和宽度统计的可用卷材",
-    fa: "کویل‌های موجود به تفکیک ضخامت و عرض",
+  reportDate: { zh: "报告日期", en: "Report Date", fa: "تاریخ گزارش" },
+  version: { zh: "版本", en: "Version", fa: "نسخه" },
+  managementFocus: { zh: "管理重点", en: "Management Focus", fa: "تمرکز مدیریتی" },
+  focusText: {
+    zh: "成品仓库已满，销售与发运速度已成为完成剩余生产计划的关键约束。",
+    en: "Finished-goods storage is full; sales and dispatch speed are now the key constraints on completing the remaining production plan.",
+    fa: "انبار محصول نهایی پر است و سرعت فروش و ارسال، محدودیت اصلی تکمیل برنامه تولید باقی‌مانده است.",
   },
-  noCoilInventory: {
-    en: "No coil inventory has been entered yet.",
-    zh: "尚未录入卷材库存。",
-    fa: "هنوز موجودی کویلی ثبت نشده است.",
+  production: { zh: "生产概览", en: "Production Overview", fa: "نمای کلی تولید" },
+  productionHrc: { zh: "镀锌产量 / HRC", en: "Production (GLV/HRC)", fa: "تولید GLV/HRC" },
+  saleHrc: { zh: "销售 / HRC", en: "Sale (Sale/HRC)", fa: "فروش/HRC" },
+  saleGlv: { zh: "销售 / GLV", en: "Sale (Sale/GLV)", fa: "فروش/GLV" },
+  galvanizingScrap: {
+    zh: "镀锌线废料",
+    en: "Scrap in Galvanizing Line",
+    fa: "ضایعات خط گالوانیزه",
   },
-  thickness: { en: "Thickness (mm)", zh: "厚度（毫米）", fa: "ضخامت (میلی‌متر)" },
-  width: { en: "Width (mm)", zh: "宽度（毫米）", fa: "عرض (میلی‌متر)" },
-  availableTonnage: { en: "Available tonnage", zh: "可用吨位", fa: "تناژ موجود" },
-  yields: { en: "Process Yields", zh: "工序良率", fa: "راندمان فرآیند" },
-  yieldsSub: { en: "Efficiency across each stage of the line", zh: "各工序效率", fa: "بازده در هر مرحله از خط" },
-  dailyProd: { en: "Daily Production", zh: "每日产量", fa: "تولید روزانه" },
-  dailyProdSub: { en: "Ton per day by process", zh: "按工序每日吨数", fa: "تن در روز به تفکیک فرآیند" },
-  cumProd: { en: "Cumulative Production", zh: "累计产量", fa: "تولید تجمعی" },
-  cumProdSub: { en: "Running totals across the project", zh: "项目累计总量", fa: "مجموع تجمعی پروژه" },
-  planVsActual: { en: "Plan vs Actual Production", zh: "计划与实际产量", fa: "مقایسه برنامه با تولید واقعی" },
-  planVsActualSub: {
-    en: "Planned tonnage versus delivered tonnage per plan entry",
-    zh: "各计划项的计划吨位与实际完成对比",
-    fa: "تناژ برنامه‌ریزی‌شده در برابر تناژ تحقق‌یافته برای هر ردیف برنامه",
+  hotRollScrap: { zh: "热轧线废料", en: "Scrap in Hot Roll Line", fa: "ضایعات خط نورد گرم" },
+  productSold: { zh: "产品销售率", en: "Product Sold", fa: "نرخ فروش محصول" },
+  inputCoilsTon: { zh: "入厂卷材吨位", en: "Input Coils in Factory", fa: "تناژ کویل ورودی" },
+  inputCoilsQty: { zh: "入厂卷材数量", en: "Input Coil Quantity", fa: "تعداد کویل ورودی" },
+  pickling: { zh: "酸洗", en: "Pickling", fa: "اسیدشویی" },
+  rolling: { zh: "冷轧", en: "Rolling", fa: "نورد" },
+  galvanized: { zh: "镀锌", en: "Galvanized", fa: "گالوانیزه" },
+  sold: { zh: "已售", en: "Sold", fa: "فروش" },
+  warehouseWip: { zh: "仓库与在制品", en: "Warehouse & WIP", fa: "انبار و کالای در جریان" },
+  scrap: { zh: "废料与边丝", en: "Spira & Scrap", fa: "اسپیرا و ضایعات" },
+  materialBalance: { zh: "物料平衡", en: "Material Balance", fa: "بالانس مواد" },
+  finishedGoods: { zh: "成品状态", en: "Finished Goods Status", fa: "وضعیت محصول نهایی" },
+  yields: { zh: "工序良率", en: "Process Yields", fa: "راندمان فرآیند" },
+  productionFlow: { zh: "生产流程（吨）", en: "Production Flow (Ton)", fa: "جریان تولید (تن)" },
+  dailyTrend: { zh: "每日生产趋势", en: "Daily Production Trend", fa: "روند تولید روزانه" },
+  coating: {
+    zh: "按厚度统计的锌耗明细",
+    en: "Zinc Consumption by Thickness",
+    fa: "مصرف روی به تفکیک ضخامت",
   },
-  planned: { en: "Planned", zh: "计划", fa: "برنامه‌ریزی‌شده" },
-  actual: { en: "Actual", zh: "实际", fa: "واقعی" },
-  delta: { en: "Variance", zh: "偏差", fa: "اختلاف" },
-  totalPlanned: { en: "Total planned", zh: "计划总量", fa: "مجموع برنامه" },
-  totalActual: { en: "Total actual", zh: "实际总量", fa: "مجموع واقعی" },
-  achievement: { en: "Achievement", zh: "完成率", fa: "درصد تحقق" },
-  warehouse: { en: "Warehouse & WIP", zh: "仓库与在制品", fa: "انبار و کالای در جریان" },
-  warehouseSub: { en: "Stocks held in process", zh: "在产库存", fa: "موجودی در فرآیند" },
-  matBal: { en: "Material Balance", zh: "物料平衡", fa: "بالانس مواد" },
-  matBalSub: { en: "Factory input versus output, WIP and scrap", zh: "进料与出料、在制品和废料", fa: "ورودی کارخانه در برابر خروجی، WIP و ضایعات" },
-  scrap: { en: "Scrap by Line", zh: "各线废料", fa: "ضایعات هر خط" },
-  scrapSub: { en: "Spira and scrap totals", zh: "螺旋与废料合计", fa: "مجموع اسپیرا و ضایعات" },
-  coating: { en: "Coating Weight Consumed (Zinc & Zamak)", zh: "镀层消耗（锌与扎马克）", fa: "وزن پوشش مصرفی (روی و زاماک)" },
-  coatingSub: { en: "Theoretical versus actual coating", zh: "理论与实际镀层", fa: "پوشش نظری در برابر واقعی" },
-  produced: { en: "Produced (ton)", zh: "产量（吨）", fa: "تولید (تن)" },
-  theoZn: { en: "Theoretical Zn (kg)", zh: "理论锌（千克）", fa: "روی نظری (کیلوگرم)" },
-  dross: { en: "Dross (kg)", zh: "渣损（千克）", fa: "سرباره (کیلوگرم)" },
-  actualCoating: { en: "Actual coating (kg)", zh: "实际镀层（千克）", fa: "پوشش واقعی (کیلوگرم)" },
-  zincPurchased: { en: "Zinc & Zamak purchased", zh: "已采购锌与扎马克", fa: "روی و زاماک خریداری‌شده" },
-  remaining: { en: "Remaining", zh: "剩余", fa: "باقیمانده" },
-  kpis: { en: "Zinc Performance KPIs", zh: "锌性能指标", fa: "شاخص‌های عملکرد روی" },
-  kpisSub: { en: "Efficiency and productivity benchmarks", zh: "效率和生产力基准", fa: "معیارهای بازده و بهره‌وری" },
-  category: { en: "Category", zh: "类别", fa: "دسته‌بندی" },
-  kpi: { en: "KPI", zh: "指标", fa: "شاخص" },
-  value: { en: "Value", zh: "数值", fa: "مقدار" },
-  unit: { en: "Unit", zh: "单位", fa: "واحد" },
-  industryStd: { en: "Industry Standard", zh: "行业标准", fa: "استاندارد صنعت" },
-  catPerf: { en: "Performance", zh: "性能", fa: "عملکرد" },
-  catProd: { en: "Productivity", zh: "生产力", fa: "بهره‌وری" },
-  kpiZnEff: { en: "Zinc Efficiency", zh: "锌效率", fa: "بازده روی" },
-  kpiZnLoss: { en: "Zinc Loss Rate", zh: "锌损失率", fa: "نرخ تلفات روی" },
-  kpiZnInt: { en: "Zinc Intensity", zh: "锌强度", fa: "شدت مصرف روی" },
-  kpiSteelPerZn: { en: "Steel Production per Zinc Consumption", zh: "单位锌消耗钢产量", fa: "تولید فولاد به ازای مصرف روی" },
-  sales: { en: "Sales Report", zh: "销售报告", fa: "گزارش فروش" },
-  salesSub: { en: "Buyer transactions", zh: "买方交易", fa: "تراکنش‌های خریداران" },
-  date: { en: "Date", zh: "日期", fa: "تاریخ" },
-  buyer: { en: "Buyer", zh: "买方", fa: "خریدار" },
-  tonnage: { en: "Tonnage", zh: "吨位", fa: "تناژ" },
-  amount: { en: "Amount (rial)", zh: "金额（里亚尔）", fa: "مبلغ (ریال)" },
-  transport: { en: "Transport", zh: "运输", fa: "حمل‌ونقل" },
-  transportSub: { en: "Loading status", zh: "装载状态", fa: "وضعیت بارگیری" },
-  underLoading: { en: "Under loading", zh: "装载中", fa: "در حال بارگیری" },
-  readyWarehouse: { en: "Ready in warehouse", zh: "仓库待发", fa: "آماده در انبار" },
-  transportNote: {
-    en: "Under-loading capacity must be at least 25 ton to enable delivery to the buyer.",
-    zh: "装载量需至少 25 吨方可交付买方。",
-    fa: "ظرفیت بارگیری باید حداقل ۲۵ تن باشد تا تحویل به خریدار ممکن شود.",
+  massBalance: { zh: "锌质量平衡", en: "Zinc Mass Balance", fa: "بالانس جرم روی" },
+  salesTransport: { zh: "销售与运输", en: "Sales & Transportation", fa: "فروش و حمل" },
+  financial: { zh: "财务汇总", en: "Financial Summary", fa: "خلاصه مالی" },
+  transfers: {
+    zh: "汇款与美元转账",
+    en: "Transfers & USD Remittances",
+    fa: "حواله‌ها و انتقال دلار",
   },
-  plan: { en: "Production Plan", zh: "生产计划", fa: "برنامه تولید" },
-  planSub: { en: "Weekly plan and execution status", zh: "周计划及执行状态", fa: "برنامه هفتگی و وضعیت اجرا" },
-  tons: { en: "Tons", zh: "吨", fa: "تن" },
-  status: { en: "Status", zh: "状态", fa: "وضعیت" },
-  scheduled: { en: "Scheduled", zh: "计划中", fa: "برنامه‌ریزی‌شده" },
-  notes: { en: "Notes", zh: "备注", fa: "یادداشت‌ها" },
-  notesSub: { en: "Decisions and remarks", zh: "决策与说明", fa: "تصمیمات و توضیحات" },
-  print: { en: "Print PDF", zh: "打印 PDF", fa: "چاپ PDF" },
-  theme: { en: "Theme", zh: "主题", fa: "تم" },
-  loadOk: { en: "Data loaded successfully", zh: "数据加载成功", fa: "داده‌ها با موفقیت بارگذاری شد" },
-  copyright: {
-    en: "Designed and developed by Eng. Hamid Reza Fardar · Copyright © 2026, all rights reserved.",
-    zh: "由 Hamid Reza Fardar 工程师设计与开发 · 版权所有 © 2026。",
-    fa: "طراح و سازنده مهندس حمیدرضا فاردار · کپی‌رایت برای سازنده محفوظ است ۲۰۲۶",
+  productionPlan: { zh: "生产计划", en: "Production Plan", fa: "برنامه تولید" },
+  inventory: { zh: "成品库存", en: "Finished Goods Inventory", fa: "موجودی محصول نهایی" },
+  dailyProduction: { zh: "每日生产明细", en: "Daily Production Detail", fa: "جزئیات تولید روزانه" },
+  notes: { zh: "管理说明", en: "Management Notes", fa: "یادداشت‌های مدیریتی" },
+  unpickled: { zh: "未酸洗", en: "Unpickled", fa: "اسیدشویی نشده" },
+  pickled: { zh: "已酸洗", en: "Pickled", fa: "اسیدشویی شده" },
+  rolled: { zh: "已轧制", en: "Rolled", fa: "نورد شده" },
+  galvanizing: { zh: "镀锌线", en: "Galvanizing", fa: "خط گالوانیزه" },
+  factoryInput: { zh: "工厂投入", en: "Factory Input", fa: "ورودی کارخانه" },
+  finalGalvanizedProduct: {
+    zh: "最终镀锌产品",
+    en: "Final Galvanized Product",
+    fa: "محصول نهایی گالوانیزه",
   },
-  projectAnalysis: { en: "Project Analysis", zh: "项目分析", fa: "تحلیل پروژه" },
-  noAnalysis: { en: "No project analysis has been entered.", zh: "尚未输入项目分析。", fa: "هیچ تحلیل پروژه‌ای وارد نشده است." },
-  mgmtCommentary: { en: "Management Commentary", zh: "管理层评论", fa: "تفسیر مدیریتی" },
-  noComment: { en: "No comment provided.", zh: "未提供评论。", fa: "توضیحی ارائه نشده است." },
-  noCommentary: { en: "No management commentary has been entered.", zh: "尚未输入管理层评论。", fa: "هیچ تفسیر مدیریتی وارد نشده است." },
-  mcOverall: { en: "Overall Project Status", zh: "项目总体状态", fa: "وضعیت کلی پروژه" },
-  mcProduction: { en: "Production Status", zh: "生产状态", fa: "وضعیت تولید" },
-  mcSales: { en: "Sales Status", zh: "销售状态", fa: "وضعیت فروش" },
-  mcInventory: { en: "Inventory Status", zh: "库存状态", fa: "وضعیت موجودی" },
-  mcKeyNote: { en: "Key Management Note", zh: "关键管理说明", fa: "نکته کلیدی مدیریتی" },
-  close: { en: "Close", zh: "关闭", fa: "بستن" },
+  wip: { zh: "在制品", en: "Work in Progress", fa: "کالای در جریان" },
+  totalScrap: { zh: "废料总计", en: "Total Scrap", fa: "کل ضایعات" },
+  balanceDifference: { zh: "平衡差异", en: "Balance Difference", fa: "اختلاف بالانس" },
+  finalGalvanizedProduction: {
+    zh: "镀锌成品产量",
+    en: "Final Galvanized Production",
+    fa: "تولید نهایی گالوانیزه",
+  },
+  finishedGoodsWarehouse: {
+    zh: "成品仓库",
+    en: "Finished Goods Warehouse",
+    fa: "انبار محصول نهایی",
+  },
+  picklingYield: { zh: "酸洗良率", en: "Pickling Yield", fa: "راندمان اسیدشویی" },
+  rollingYield: { zh: "轧制良率", en: "Rolling Yield", fa: "راندمان نورد" },
+  galvanizingYield: { zh: "镀锌良率", en: "Galvanizing Yield", fa: "راندمان گالوانیزه" },
+  coilToCoilYield: { zh: "卷到卷良率", en: "Coil-to-Coil Yield", fa: "راندمان کویل به کویل" },
+  totalSteelProduction: { zh: "钢材总产量", en: "Total Steel Production", fa: "کل تولید فولاد" },
+  theoreticalZinc: { zh: "理论锌耗", en: "Theoretical Zinc", fa: "روی نظری" },
+  actualZinc: { zh: "钢材实际镀锌量", en: "Actual Zinc on Steel", fa: "روی واقعی روی محصول" },
+  drossLoss: { zh: "锌渣损耗", en: "Dross Loss", fa: "تلفات سرباره" },
+  zincEfficiency: { zh: "锌利用率", en: "Zinc Efficiency", fa: "بازده روی" },
+  totalSalesCollected: {
+    zh: "销售回款总额",
+    en: "Total Sales / Collected",
+    fa: "کل فروش / دریافتی",
+  },
+  projectCosts: {
+    zh: "项目采购与费用",
+    en: "Zinc, Zamak, Customs & Other Costs",
+    fa: "هزینه روی، زاماک، گمرک و سایر",
+  },
+  transferChinaOffice: {
+    zh: "转入中国办公室",
+    en: "Transfer to China Office",
+    fa: "انتقال به دفتر چین",
+  },
+  paidMrFardar: { zh: "支付Fardar先生", en: "Paid to Mr. Fardar", fa: "پرداخت به آقای فاردار" },
+  remaining: { zh: "余额", en: "Remaining", fa: "باقیمانده" },
 };
-
-const dataTr: Record<string, Record<Lang, string>> = {
-  Unpickled: { en: "Unpickled", zh: "未酸洗", fa: "اسیدشویی نشده" },
-  Pickled: { en: "Pickled", zh: "已酸洗", fa: "اسیدشویی شده" },
-  Rolled: { en: "Rolled", zh: "已轧制", fa: "نورد شده" },
-  Rolling: { en: "Rolling", zh: "轧制", fa: "نورد" },
-  Galvanizing: { en: "Galvanizing", zh: "镀锌", fa: "گالوانیزه" },
-  "Pickling Yield": { en: "Pickling Yield", zh: "酸洗良率", fa: "راندمان اسیدشویی" },
-  "Rolling Yield": { en: "Rolling Yield", zh: "轧制良率", fa: "راندمان نورد" },
-  "Galvanizing Yield": { en: "Galvanizing Yield", zh: "镀锌良率", fa: "راندمان گالوانیزه" },
-  "Coil to Coil Yield": { en: "Coil to Coil Yield", zh: "卷到卷良率", fa: "راندمان کویل به کویل" },
-  "Factory Input": { en: "Factory Input", zh: "工厂输入", fa: "ورودی کارخانه" },
-  "Final Product": { en: "Final Product", zh: "最终产品", fa: "محصول نهایی" },
-  "Warehouse + WIP": { en: "Warehouse + WIP", zh: "仓库 + 在制品", fa: "انبار + کالای در جریان" },
-  "Warehouse + WIP − Sold": { en: "Warehouse + WIP − Sold", zh: "仓库 + 在制品 − 已售", fa: "انبار + WIP − فروش رفته" },
-  "Ready to ship": { en: "Ready to ship", zh: "待发货", fa: "آماده ارسال" },
-  "Total Scrap": { en: "Total Scrap", zh: "总废料", fa: "کل ضایعات" },
-  "AKA Technical Representative": { en: "AKA Technical Representative", zh: "AKA 技术代表", fa: "نماینده فنی آکا" },
-};
-
-const dt = (value: string, lang: Lang) => dataTr[value]?.[lang] ?? value;
 
 function Index() {
-  const totals = report.totals;
-  const [lang, setLang] = useState<Lang>("en");
-  const [theme, setTheme] = useState<"dark" | "light">("light");
-  const [showAnalysis, setShowAnalysis] = useState(false);
-  const [showCommentary, setShowCommentary] = useState(false);
-  const tr = (key: string) => translations[key]?.[lang] ?? key;
+  const [lang, setLang] = useState<ReportLanguage>("zh");
+  const t = (key: string) => labels[key]?.[lang] ?? key;
+  const title = report.title[lang] ?? report.title.en;
+  const checks = useMemo(() => reportChecks(report), []);
+  const chartDaily = report.dailyProduction.map((r) => ({
+    date: r.date.slice(5),
+    pickling: r.pickling,
+    rolling: r.rolling,
+    galvanized: r.galvanized,
+  }));
+  const flow = [
+    { name: t("factoryInput"), value: report.totals.inputCoilsTon },
+    { name: t("pickling"), value: report.totals.pickling },
+    { name: t("rolling"), value: report.totals.rolling },
+    { name: t("galvanized"), value: report.totals.galvanized },
+    { name: t("sold"), value: report.totals.sold },
+  ];
+  const financialTotal = sum(report.transfers, (r) => r.rialAmount);
 
   useEffect(() => {
-    const savedLang = (localStorage.getItem("lang") as Lang | null) ?? "en";
-    const savedTheme = (localStorage.getItem("theme") as "dark" | "light" | null) ?? "light";
-    setLang(savedLang);
-    setTheme(savedTheme);
-  }, []);
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.toggle("light", theme === "light");
-    root.classList.toggle("dark", theme === "dark");
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
-  useEffect(() => {
-    document.documentElement.dir = lang === "fa" ? "rtl" : "ltr";
     document.documentElement.lang = lang;
-    localStorage.setItem("lang", lang);
+    document.documentElement.dir = lang === "fa" ? "rtl" : "ltr";
   }, [lang]);
 
-  const loadStatus = {
-    ok: Boolean(report?.totals && Array.isArray(report.daily)),
-    message: tr("loadOk"),
-  };
-
-  const lastUpdate = report.reportDate
-    ? new Date(report.reportDate).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : "—";
-
-  const dailyNumeric = report.daily.map((row) => ({
-    date: row.date.slice(5),
-    pickling: typeof row.pickling === "number" ? row.pickling : 0,
-    rolling: typeof row.rolling === "number" ? row.rolling : 0,
-    galv: typeof row.galv === "number" ? row.galv : 0,
-  }));
-
-  const cumulativeNumeric = report.cumulative.map((row) => ({
-    date: row.date.slice(5),
-    pickling: typeof row.pickling === "number" ? row.pickling : null,
-    rolling: typeof row.rolling === "number" ? row.rolling : null,
-    galv: typeof row.galv === "number" ? row.galv : null,
-  }));
-
-  const planVsActual = report.plan.map((item) => {
-    const planned = item.tons ?? 0;
-    const actual = /complete/i.test(item.status ?? "") ? planned : 0;
-    return { date: item.date, planned, actual };
-  });
-  const totalPlanned = planVsActual.reduce((sum, item) => sum + item.planned, 0);
-  const totalActual = planVsActual.reduce((sum, item) => sum + item.actual, 0);
-  const achievementPct = totalPlanned > 0 ? (totalActual / totalPlanned) * 100 : 0;
-
-  const coilInventory = (((report as unknown as Record<string, unknown>).coilInventory ?? []) as CoilInventoryRow[]);
-
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <div className="no-print sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-end gap-2 px-6 py-2">
-          <div className="flex items-center gap-1 rounded-md border border-border bg-secondary/40 p-1">
-            <Languages className="ml-1 h-3.5 w-3.5 text-muted-foreground" />
-            {(["en", "zh", "fa"] as Lang[]).map((option) => (
-              <button
-                key={option}
-                onClick={() => setLang(option)}
-                className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${
-                  lang === option
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {option === "en" ? "EN" : option === "zh" ? "中文" : "فارسی"}
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 text-xs font-medium text-foreground hover:bg-secondary"
-            title={tr("theme")}
-          >
-            {theme === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-            {theme === "dark" ? "Light" : "Dark"}
-          </button>
+    <div className="min-h-screen bg-[#f4f7fa] text-slate-900">
+      <div className="no-print sticky top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur">
+        <div className="mx-auto flex max-w-[1480px] items-center justify-end gap-2 px-4 py-2">
+          <Languages className="h-4 w-4 text-slate-400" />
+          {(["zh", "en", "fa"] as ReportLanguage[]).map((code) => (
+            <button
+              key={code}
+              onClick={() => setLang(code)}
+              className={`rounded-md px-3 py-1.5 text-xs font-semibold ${lang === code ? "bg-[#123b57] text-white" : "text-slate-600 hover:bg-slate-100"}`}
+            >
+              {code === "zh" ? "中文" : code === "en" ? "EN" : "فارسی"}
+            </button>
+          ))}
           <button
             onClick={() => window.print()}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-xs font-semibold text-primary-foreground hover:opacity-90"
+            className="ml-2 inline-flex items-center gap-2 rounded-md bg-[#b52532] px-3 py-1.5 text-xs font-semibold text-white"
           >
-            <Printer className="h-3.5 w-3.5" />
-            {tr("print")}
-          </button>
-          <button
-            onClick={() => setShowAnalysis(true)}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 text-xs font-medium text-foreground hover:bg-secondary"
-          >
-            <FileText className="h-3.5 w-3.5" />
-            {tr("projectAnalysis")}
-          </button>
-          <button
-            onClick={() => setShowCommentary(true)}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-secondary/40 px-2.5 text-xs font-medium text-foreground hover:bg-secondary"
-          >
-            <MessageSquare className="h-3.5 w-3.5" />
-            {tr("mgmtCommentary")}
+            <Printer className="h-4 w-4" />
+            {lang === "zh" ? "打印 / PDF" : "Print / PDF"}
           </button>
         </div>
       </div>
 
-      <header className="border-b border-border" style={{ background: "var(--gradient-hero)" }}>
-        <div className="mx-auto max-w-7xl px-6 py-10">
+      <header className="bg-[#102f46] text-white">
+        <div className="mx-auto max-w-[1480px] px-5 py-9">
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wider text-primary">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />
-                {tr("badge")}
-              </div>
-              <h1 className="text-3xl font-semibold tracking-tight md:text-4xl">{tr("title")}</h1>
-              <p className="mt-2 max-w-2xl text-sm text-muted-foreground">{tr("subtitle")}</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
+                {t("executiveReport")}
+              </p>
+              <h1 className="text-3xl font-bold md:text-4xl">{title}</h1>
+              <p className="mt-2 text-sm text-slate-300">
+                Galvanizing Project · Production · Inventory · Sales · Finance
+              </p>
             </div>
-            <div className="flex items-center gap-6 text-sm">
-              <div>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">{tr("reportDate")}</p>
-                <p className="font-semibold tabular-nums">{lastUpdate}</p>
-              </div>
-              <div className="h-10 w-px bg-border" />
-              <div>
-                <p className="text-xs uppercase tracking-wider text-muted-foreground">{tr("version")}</p>
-                <p className="font-semibold tabular-nums">v{report.version}</p>
-              </div>
+            <div className="flex gap-3">
+              <HeaderMeta
+                label={t("reportDate")}
+                value={report.reportDate}
+                icon={<CalendarDays />}
+              />
+              <HeaderMeta label={t("version")} value={`V${report.version}`} icon={<BarChart3 />} />
             </div>
-          </div>
-          <div
-            className={`mt-6 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3 text-sm ${
-              loadStatus.ok ? "border-primary/30 bg-primary/10" : "border-destructive/40 bg-destructive/10"
-            }`}
-          >
-            <span className={`h-2.5 w-2.5 rounded-full ${loadStatus.ok ? "animate-pulse bg-primary" : "bg-destructive"}`} />
-            <span className="font-medium">{loadStatus.ok ? tr("statusOk") : tr("statusFail")}</span>
-            <span className="text-muted-foreground">· {loadStatus.message}</span>
-            <span className="text-muted-foreground">
-              · {tr("lastUpdated")} <span className="font-semibold text-foreground">{lastUpdate}</span>
-            </span>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-10">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 xl:grid-cols-7">
-          <StatCard label={tr("inputCoils")} value={fmt(totals.inputCoilsTon, 0)} unit={tr("ton")} />
-          <StatCard label={tr("inputCoilCount")} value={fmt0(totals.inputCoilsQty)} unit={tr("coils")} accent="accent" />
-          <StatCard label={tr("pickling")} value={fmt(totals.pickling, 0)} unit={tr("ton")} accent="chart-2" />
-          <StatCard label={tr("rolling")} value={fmt(totals.rolling, 0)} unit={tr("ton")} accent="chart-4" />
-          <StatCard label={tr("galvanized")} value={fmt(totals.galvanized, 0)} unit={tr("ton")} accent="primary" />
-          <StatCard label={tr("sold")} value={fmt(totals.sold, 0)} unit={tr("ton")} accent="accent" />
-          <StatCard label={tr("readyToShip")} value={fmt(report.transport.readyWarehouse, 0)} unit={tr("ton")} accent="chart-2" />
-        </div>
-
-        <Section title={tr("coilInventory")} subtitle={tr("coilInventorySub")}>
-          {coilInventory.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[560px] text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                    <th className="py-3 pr-4 font-medium">{tr("thickness")}</th>
-                    <th className="py-3 pr-4 font-medium">{tr("width")}</th>
-                    <th className="py-3 text-right font-medium">{tr("availableTonnage")}</th>
-                  </tr>
-                </thead>
-                <tbody className="tabular-nums">
-                  {coilInventory.map((row, index) => (
-                    <tr key={`${row.thickness}-${row.width}-${index}`} className="border-b border-border/60 hover:bg-secondary/30">
-                      <td className="py-3 pr-4 font-medium text-foreground">{row.thickness}</td>
-                      <td className="py-3 pr-4 text-muted-foreground">{row.width}</td>
-                      <td className="py-3 text-right font-semibold text-primary">
-                        {fmt(Number(row.tonnage))} <span className="text-xs text-muted-foreground">{tr("ton")}</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+      <main className="mx-auto max-w-[1480px] space-y-7 px-4 py-7 md:px-6">
+        <section className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+          <div className="flex gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+            <div>
+              <h2 className="text-sm font-bold text-amber-900">{t("managementFocus")}</h2>
+              <p className="mt-1 text-sm leading-6 text-amber-800">{t("focusText")}</p>
             </div>
-          ) : (
-            <p className="rounded-lg border border-dashed border-border bg-secondary/20 px-4 py-5 text-sm italic text-muted-foreground">
-              {tr("noCoilInventory")}
-            </p>
-          )}
-        </Section>
-
-        <Section title={tr("yields")} subtitle={tr("yieldsSub")}>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {report.yields.map((item) => {
-              const percentage = item.value * 100;
-              return (
-                <div key={item.process} className="rounded-xl border border-border bg-secondary/30 p-4">
-                  <p className="text-sm font-medium text-foreground">{dt(item.process, lang)}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{item.formula}</p>
-                  <div className="mt-4 flex items-baseline gap-2">
-                    <span className="text-2xl font-semibold tabular-nums text-primary">{percentage.toFixed(2)}</span>
-                    <span className="text-xs text-muted-foreground">%</span>
-                  </div>
-                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-                    <div
-                      className="h-full rounded-full"
-                      style={{ width: `${Math.min(percentage, 100)}%`, background: "var(--gradient-primary)" }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
           </div>
-        </Section>
+        </section>
 
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Section title={tr("dailyProd")} subtitle={tr("dailyProdSub")}>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={dailyNumeric}>
-                  <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="date" stroke="var(--color-muted-foreground)" fontSize={11} />
-                  <YAxis stroke="var(--color-muted-foreground)" fontSize={11} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Bar dataKey="pickling" stackId="a" fill="var(--color-chart-2)" name={tr("pickling")} />
-                  <Bar dataKey="rolling" stackId="a" fill="var(--color-chart-4)" name={tr("rolling")} />
-                  <Bar dataKey="galv" stackId="a" fill="var(--color-chart-1)" name={tr("galvanized")} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </Section>
-
-          <Section title={tr("cumProd")} subtitle={tr("cumProdSub")}>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={cumulativeNumeric}>
-                  <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="date" stroke="var(--color-muted-foreground)" fontSize={11} />
-                  <YAxis stroke="var(--color-muted-foreground)" fontSize={11} />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                  <Line type="monotone" dataKey="pickling" stroke="var(--color-chart-2)" strokeWidth={2} dot={false} name={tr("pickling")} connectNulls />
-                  <Line type="monotone" dataKey="rolling" stroke="var(--color-chart-4)" strokeWidth={2} dot={false} name={tr("rolling")} connectNulls />
-                  <Line type="monotone" dataKey="galv" stroke="var(--color-chart-1)" strokeWidth={2.5} dot={false} name={tr("galvanized")} connectNulls />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </Section>
-        </div>
-
-        <Section title={tr("planVsActual")} subtitle={tr("planVsActualSub")}>
-          <div className="mb-4 grid gap-3 md:grid-cols-3">
-            <SummaryValue label={tr("totalPlanned")} value={`${fmt0(totalPlanned)} ${tr("ton")}`} />
-            <SummaryValue label={tr("totalActual")} value={`${fmt0(totalActual)} ${tr("ton")}`} highlight />
-            <SummaryValue label={tr("achievement")} value={`${achievementPct.toFixed(1)} %`} />
+        <ReportSection title={t("production")} icon={<Factory />}>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+            {report.productionKpis.map((kpi) => (
+              <Kpi
+                key={kpi.key}
+                label={t(kpi.key)}
+                value={`${kpi.value.toFixed(kpi.value < 10 ? 2 : 1)}%`}
+              />
+            ))}
           </div>
-          <div className="h-72">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={planVsActual}>
-                <CartesianGrid stroke="var(--color-border)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="date" stroke="var(--color-muted-foreground)" fontSize={11} />
-                <YAxis stroke="var(--color-muted-foreground)" fontSize={11} />
-                <Tooltip contentStyle={tooltipStyle} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Bar dataKey="planned" fill="var(--color-chart-4)" name={tr("planned")} radius={[4, 4, 0, 0]} />
-                <Bar dataKey="actual" fill="var(--color-chart-1)" name={tr("actual")} radius={[4, 4, 0, 0]} />
+          <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
+            <Metric label={t("inputCoilsTon")} value={fmt(report.totals.inputCoilsTon)} unit="t" />
+            <Metric
+              label={t("inputCoilsQty")}
+              value={fmt(report.totals.inputCoilsQty, 0)}
+              unit="coils"
+            />
+            <Metric label={t("pickling")} value={fmt(report.totals.pickling)} unit="t" />
+            <Metric label={t("rolling")} value={fmt(report.totals.rolling)} unit="t" />
+            <Metric
+              label={t("galvanized")}
+              value={fmt(report.totals.galvanized)}
+              unit="t"
+              highlight
+            />
+            <Metric label={t("sold")} value={fmt(report.totals.sold)} unit="t" />
+          </div>
+        </ReportSection>
+
+        <div className="grid gap-6 xl:grid-cols-2">
+          <ReportSection title={t("productionFlow")} icon={<TrendingUp />}>
+            <Chart height={300}>
+              <BarChart data={flow} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" />
+                <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11 }} />
+                <Tooltip formatter={(v) => `${fmt(Number(v))} t`} />
+                <Bar dataKey="value" fill="#0f6f8f" radius={[0, 6, 6, 0]} />
               </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </Section>
-
-        <Section title={tr("plan")} subtitle={tr("planSub")}>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="py-3 pr-4 font-medium">{tr("date")}</th>
-                  <th className="py-3 pr-4 font-medium">{tr("thickness")}</th>
-                  <th className="py-3 pr-4 font-medium">{tr("width")}</th>
-                  <th className="py-3 pr-4 text-right font-medium">{tr("tons")}</th>
-                  <th className="py-3 font-medium">{tr("status")}</th>
-                </tr>
-              </thead>
-              <tbody className="tabular-nums">
-                {report.plan.map((item, index) => (
-                  <tr key={index} className="border-b border-border/60 hover:bg-secondary/30">
-                    <td className="py-3 pr-4 font-medium">{item.date}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{item.thickness}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{item.width}</td>
-                    <td className="py-3 pr-4 text-right font-semibold">{item.tons}</td>
-                    <td className="py-3 text-muted-foreground">{dt(item.status || "Scheduled", lang)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </Section>
-
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Section title={tr("warehouse")} subtitle={tr("warehouseSub")}>
-            <ul className="space-y-3">
-              {report.warehouse.map((item) => (
-                <li key={item.name} className="flex items-center justify-between rounded-lg border border-border bg-secondary/30 px-4 py-3">
-                  <span className="text-sm">{dt(item.name, lang)}</span>
-                  <span className="font-semibold tabular-nums text-primary">
-                    {fmt(item.ton)} <span className="text-xs text-muted-foreground">{tr("ton")}</span>
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </Section>
-
-          <Section title={tr("matBal")} subtitle={tr("matBalSub")}>
-            <ul className="space-y-2">
-              {report.materialBalance.map((item) => (
-                <li key={item.k} className="flex items-center justify-between border-b border-border/60 py-2 text-sm last:border-0">
-                  <span className="text-muted-foreground">{dt(item.k, lang)}</span>
-                  <span className="font-semibold tabular-nums">{fmt(item.v)}</span>
-                </li>
-              ))}
-            </ul>
-          </Section>
-
-          <Section title={tr("scrap")} subtitle={tr("scrapSub")}>
-            <div className="h-56">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={report.scrap.map((item) => ({ ...item, line: dt(item.line, lang) }))}
-                    dataKey="ton"
-                    nameKey="line"
-                    innerRadius={50}
-                    outerRadius={80}
-                    paddingAngle={4}
-                  >
-                    {report.scrap.map((_, index) => (
-                      <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Legend wrapperStyle={{ fontSize: 12 }} />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </Section>
+            </Chart>
+          </ReportSection>
+          <ReportSection title={t("dailyTrend")} icon={<BarChart3 />}>
+            <Chart height={300}>
+              <LineChart data={chartDaily}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={2} />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line
+                  dataKey="pickling"
+                  stroke="#0f6f8f"
+                  strokeWidth={2}
+                  dot={false}
+                  name={t("pickling")}
+                />
+                <Line
+                  dataKey="rolling"
+                  stroke="#f0a23b"
+                  strokeWidth={2}
+                  dot={false}
+                  name={t("rolling")}
+                />
+                <Line
+                  dataKey="galvanized"
+                  stroke="#2aa37a"
+                  strokeWidth={2.5}
+                  dot={false}
+                  name={t("galvanized")}
+                />
+              </LineChart>
+            </Chart>
+          </ReportSection>
         </div>
 
-        <div className="order-1">
-        <Section title={tr("coating")} subtitle={tr("coatingSub")}>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                  <th className="py-3 pr-4 font-medium">{tr("thickness")}</th>
-                  <th className="py-3 pr-4 font-medium">{tr("width")}</th>
-                  <th className="py-3 pr-4 text-right font-medium">{tr("produced")}</th>
-                  <th className="py-3 pr-4 text-right font-medium">{tr("theoZn")}</th>
-                  <th className="py-3 pr-4 text-right font-medium">{tr("dross")}</th>
-                  <th className="py-3 text-right font-medium">{tr("actualCoating")}</th>
-                </tr>
-              </thead>
-              <tbody className="tabular-nums">
-                {report.coating.map((item, index) => (
-                  <tr key={`${item.thickness}-${index}`} className="border-b border-border/60 hover:bg-secondary/30">
-                    <td className="py-3 pr-4 font-medium">{item.thickness}</td>
-                    <td className="py-3 pr-4 text-muted-foreground">{item.width}</td>
-                    <td className="py-3 pr-4 text-right">{fmt(item.weight)}</td>
-                    <td className="py-3 pr-4 text-right">{fmt(item.theoZn)}</td>
-                    <td className="py-3 pr-4 text-right text-accent">{fmt(item.dross)}</td>
-                    <td className="py-3 text-right font-semibold text-primary">{fmt(item.actual)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <SummaryValue label={tr("zincPurchased")} value={`${fmt(report.zincPurchased)} ${tr("ton")}`} />
-            <SummaryValue label={tr("remaining")} value={`${fmt(report.zincRemaining)} ${tr("ton")}`} highlight />
-          </div>
-          <div className="mt-6 rounded-xl border border-border bg-secondary/20 p-4">
-            <h3 className="text-sm font-semibold">{tr("kpis")}</h3>
-            <p className="mb-3 mt-1 text-xs text-muted-foreground">{tr("kpisSub")}</p>
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[640px] text-sm">
-                <thead>
-                  <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                    <th className="py-2 pr-4 font-medium">{tr("category")}</th>
-                    <th className="py-2 pr-4 font-medium">{tr("kpi")}</th>
-                    <th className="py-2 pr-4 text-right font-medium">{tr("value")}</th>
-                    <th className="py-2 pr-4 font-medium">{tr("unit")}</th>
-                    <th className="py-2 font-medium">{tr("industryStd")}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    { category: tr("catPerf"), name: tr("kpiZnEff"), value: "82", unit: "%", standard: "80–88%" },
-                    { category: tr("catPerf"), name: tr("kpiZnLoss"), value: "18", unit: "%", standard: "15–20%" },
-                    { category: tr("catProd"), name: tr("kpiZnInt"), value: "11.73", unit: "kg Zn/ton steel", standard: "10–15 kg/ton" },
-                    { category: tr("catProd"), name: tr("kpiSteelPerZn"), value: "85.2", unit: "kg steel/kg Zn", standard: "80–100" },
-                  ].map((item) => (
-                    <tr key={item.name} className="border-b border-border/60 hover:bg-secondary/30">
-                      <td className="py-2 pr-4 text-muted-foreground">{item.category}</td>
-                      <td className="py-2 pr-4 font-medium">{item.name}</td>
-                      <td className="py-2 pr-4 text-right font-semibold text-primary">{item.value}</td>
-                      <td className="py-2 pr-4 text-muted-foreground">{item.unit}</td>
-                      <td className="py-2 text-muted-foreground">{item.standard}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </Section>
+        <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-4">
+          <SimpleData
+            title={t("warehouseWip")}
+            rows={report.warehouse.map((r) => [t(r.key), fmt(r.ton)])}
+          />
+          <SimpleData title={t("scrap")} rows={report.scrap.map((r) => [t(r.key), fmt(r.ton)])} />
+          <SimpleData
+            title={t("materialBalance")}
+            rows={report.materialBalance.map((r) => [t(r.key), fmt(r.ton)])}
+            good={Math.abs(checks.materialBalanceDifference) < 0.01}
+          />
+          <SimpleData
+            title={t("finishedGoods")}
+            rows={report.finishedGoods.map((r) => [t(r.key), fmt(r.ton)])}
+          />
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-3">
-          <div className="lg:col-span-2">
-            <Section title={tr("sales")} subtitle={tr("salesSub")}>
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-sm">
-                  <thead>
-                    <tr className="border-b border-border text-left text-xs uppercase tracking-wider text-muted-foreground">
-                      <th className="py-3 pr-4 font-medium">{tr("date")}</th>
-                      <th className="py-3 pr-4 font-medium">{tr("buyer")}</th>
-                      <th className="py-3 pr-4 text-right font-medium">{tr("tonnage")}</th>
-                      <th className="py-3 text-right font-medium">{tr("amount")}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="tabular-nums">
-                    {report.sales.map((item, index) => (
-                      <tr key={index} className="border-b border-border/60 hover:bg-secondary/30">
-                        <td className="py-3 pr-4 text-muted-foreground">{item.date}</td>
-                        <td className="py-3 pr-4 font-medium">{item.buyer}</td>
-                        <td className="py-3 pr-4 text-right">{fmt(item.tonnage)}</td>
-                        <td className="py-3 text-right font-semibold text-primary">{fmtRial(item.amount)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        <ReportSection title={t("yields")} icon={<TrendingUp />}>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {report.yields.map((row) => (
+              <div key={row.key} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <p className="text-sm font-semibold">{t(row.key)}</p>
+                <p className="mt-1 min-h-8 text-[11px] text-slate-500">{row.formula}</p>
+                <p className="mt-3 text-3xl font-bold text-[#0f6f8f]">{row.value.toFixed(1)}%</p>
+                <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-200">
+                  <div
+                    className="h-full rounded-full bg-[#2aa37a]"
+                    style={{ width: `${Math.min(row.value, 100)}%` }}
+                  />
+                </div>
               </div>
-            </Section>
+            ))}
           </div>
-          <Section title={tr("transport")} subtitle={tr("transportSub")}>
-            <div className="space-y-3">
-              <SummaryValue label={tr("underLoading")} value={`${fmt(report.transport.underLoading)} ${tr("ton")}`} />
-              <SummaryValue label={tr("readyWarehouse")} value={`${fmt(report.transport.readyWarehouse)} ${tr("ton")}`} highlight />
-              <p className="text-xs text-muted-foreground">{tr("transportNote")}</p>
+        </ReportSection>
+
+        <ReportSection title={t("coating")} icon={<Factory />}>
+          <DataTable
+            headers={[
+              "Thickness (mm)",
+              "Width (mm)",
+              "Produced (t)",
+              "Theoretical Zn (kg)",
+              "Loss (kg)",
+              "Actual coating (kg)",
+            ]}
+            rows={report.coating.map((r) => [
+              r.thickness,
+              r.width,
+              fmt(r.producedWeight),
+              fmt(r.theoreticalZinc),
+              fmt(r.loss),
+              fmt(r.actualCoating),
+            ])}
+            total={[
+              "Total",
+              "",
+              fmt(report.totals.galvanized),
+              fmt(report.massBalance[1].value),
+              fmt(report.massBalance[3].value),
+              fmt(report.massBalance[2].value),
+            ]}
+          />
+          <div className="mt-5 grid gap-3 md:grid-cols-5">
+            {report.massBalance.map((r) => (
+              <Metric
+                key={r.key}
+                label={t(r.key)}
+                value={fmt(r.value, r.unit === "%" ? 1 : 3)}
+                unit={r.unit}
+                highlight={r.key === "zincEfficiency"}
+              />
+            ))}
+          </div>
+        </ReportSection>
+
+        <div className="grid gap-6 xl:grid-cols-[2fr_1fr]">
+          <ReportSection title={t("salesTransport")} icon={<Ship />}>
+            <DataTable
+              headers={["Date", "Buyer", "Tonnage (t)", "Amount (IRR)"]}
+              rows={report.sales.map((r) => [
+                r.date,
+                r.buyer,
+                fmt(r.tonnage),
+                fmtRial(r.amountRial),
+              ])}
+              total={[
+                "Total",
+                "",
+                fmt(sum(report.sales, (r) => r.tonnage)),
+                fmtRial(sum(report.sales, (r) => r.amountRial)),
+              ]}
+            />
+          </ReportSection>
+          <ReportSection
+            title={lang === "zh" ? "运输状态" : "Transport Status"}
+            icon={<PackageCheck />}
+          >
+            <div className="grid gap-4">
+              <Metric
+                label={lang === "zh" ? "装载中" : "Under Loading"}
+                value={fmt(report.transport.underLoading)}
+                unit="t"
+              />
+              <Metric
+                label={lang === "zh" ? "仓库待发" : "Ready in Warehouse"}
+                value={fmt(report.transport.readyInWarehouse)}
+                unit="t"
+                highlight
+              />
             </div>
-          </Section>
+            <p className="mt-4 text-xs leading-5 text-slate-500">
+              {lang === "zh"
+                ? "装载量至少达到25吨后方可向买方发运。"
+                : "Under-loading capacity must reach at least 25 tons before delivery."}
+            </p>
+          </ReportSection>
         </div>
 
-        <div className="order-2">
-        <Section title={tr("notes")} subtitle={tr("notesSub")}>
-          <ol className="space-y-3 text-sm">
+        <ReportSection title={t("financial")} icon={<CircleDollarSign />}>
+          <DataTable
+            headers={[
+              lang === "zh" ? "项目" : "Item",
+              "Amount (IRR)",
+              lang === "zh" ? "说明" : "Notes",
+            ]}
+            rows={report.financial.map((r) => [t(r.key), fmtRial(r.amountRial), r.note ?? "—"])}
+          />
+        </ReportSection>
+        <ReportSection title={t("transfers")} icon={<CircleDollarSign />}>
+          <DataTable
+            headers={["Date", "Rial Amount", "USD Rate", "USD Amount", "Status", "Notes"]}
+            rows={report.transfers.map((r) => [
+              r.date,
+              fmtRial(r.rialAmount),
+              fmtRial(r.usdRate),
+              fmt(r.usdAmount, 2),
+              r.status,
+              r.notes ?? "—",
+            ])}
+            total={[
+              "Total",
+              fmtRial(financialTotal),
+              "",
+              fmt(
+                sum(report.transfers, (r) => r.usdAmount),
+                2,
+              ),
+              "",
+              "",
+            ]}
+          />
+        </ReportSection>
+
+        <ReportSection title={t("productionPlan")} icon={<CalendarDays />}>
+          <DataTable
+            headers={["Date", "Thickness (mm)", "Width (mm)", "Tons", "Status"]}
+            rows={report.productionPlan.map((r) => [
+              r.date,
+              r.thickness,
+              r.width,
+              fmt(r.tons, 0),
+              r.status,
+            ])}
+          />
+        </ReportSection>
+
+        <ReportSection title={t("inventory")} icon={<Boxes />}>
+          <div className="grid gap-6 xl:grid-cols-[1.3fr_1fr]">
+            <DataTable
+              headers={[
+                "Thickness (mm)",
+                "Width (mm)",
+                "Grade A (kg)",
+                "Grade B/C (kg)",
+                "Total (kg)",
+              ]}
+              rows={report.inventory.map((r) => [
+                r.thickness,
+                r.width,
+                fmt(r.gradeAKg, 0),
+                fmt(r.gradeBCKg, 0),
+                fmt(r.totalKg, 0),
+              ])}
+              total={[
+                "Total",
+                "",
+                fmt(
+                  sum(report.inventory, (r) => r.gradeAKg),
+                  0,
+                ),
+                fmt(
+                  sum(report.inventory, (r) => r.gradeBCKg),
+                  0,
+                ),
+                fmt(
+                  sum(report.inventory, (r) => r.totalKg),
+                  0,
+                ),
+              ]}
+            />
+            <Chart height={300}>
+              <BarChart data={report.inventory.filter((r) => r.totalKg > 0)} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" horizontal={false} />
+                <XAxis type="number" tickFormatter={(v) => `${v / 1000}t`} />
+                <YAxis dataKey="thickness" type="category" width={45} />
+                <Tooltip formatter={(v) => `${fmt(Number(v) / 1000)} t`} />
+                <Legend />
+                <Bar dataKey="gradeAKg" stackId="a" fill="#0f6f8f" name="Grade A" />
+                <Bar dataKey="gradeBCKg" stackId="a" fill="#f0a23b" name="Grade B/C" />
+              </BarChart>
+            </Chart>
+          </div>
+        </ReportSection>
+
+        <ReportSection title={t("dailyProduction")} icon={<BarChart3 />}>
+          <DataTable
+            headers={[
+              "Persian Date",
+              "Date",
+              "Input Ton",
+              "Input Qty",
+              "Pickling",
+              "Rolling",
+              "Galvanized",
+            ]}
+            rows={report.dailyProduction.map((r) => [
+              r.persianDate,
+              r.date,
+              fmt(r.inputCoilsTon),
+              fmt(r.inputCoilsQty, 0),
+              fmt(r.pickling),
+              fmt(r.rolling),
+              fmt(r.galvanized),
+            ])}
+            total={[
+              "Cumulative total",
+              "",
+              "",
+              "",
+              fmt(report.totals.pickling),
+              fmt(report.totals.rolling),
+              fmt(report.totals.galvanized),
+            ]}
+          />
+          <p className="mt-3 text-[11px] leading-5 text-slate-500">
+            {lang === "zh"
+              ? "注：累计总量采用报告首页核准值。每日明细的四舍五入差异将在下一次数据录入时核对。"
+              : "Note: cumulative totals use the approved values shown on the report cover. Rounding variances in daily detail will be reconciled in the next data-entry phase."}
+          </p>
+        </ReportSection>
+
+        <ReportSection title={t("notes")} icon={<AlertTriangle />}>
+          <ol className="grid gap-3 lg:grid-cols-2">
             {report.notes.map((note, index) => (
-              <li key={index} className="flex gap-3">
-                <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-primary/30 bg-primary/10 text-[10px] font-semibold text-primary">
+              <li
+                key={index}
+                className="flex gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 text-sm leading-6"
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#123b57] text-xs font-bold text-white">
                   {index + 1}
                 </span>
-                <span className="text-muted-foreground">{noteText(note as LocalizedText, index, lang)}</span>
+                <span>{note[lang] ?? note.en}</span>
               </li>
             ))}
           </ol>
-        </Section>
-        </div>
-
-        <footer className="order-3 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border bg-card px-6 py-5 text-sm">
-          <p className="text-muted-foreground">{tr("copyright")}</p>
-          <div className={lang === "fa" ? "text-left" : "text-right"}>
-            <p className="text-xs uppercase tracking-wider text-muted-foreground">{dt(report.signature.role, lang)}</p>
-            <p className="mt-0.5 font-semibold">{report.signature.name}</p>
-          </div>
+        </ReportSection>
+        <footer className="border-t border-slate-300 py-7 text-center">
+          <p className="text-xs uppercase tracking-[.2em] text-slate-500">
+            {report.signature.role[lang] ?? report.signature.role.en}
+          </p>
+          <p className="mt-2 font-semibold">{report.signature.name}</p>
         </footer>
       </main>
-
-      {showAnalysis && (
-        <Modal title={tr("projectAnalysis")} onClose={() => setShowAnalysis(false)} closeLabel={tr("close")}>
-          {localizedText((report as unknown as Record<string, unknown>).projectAnalysis, lang).trim() ? (
-            <div className="whitespace-pre-wrap text-sm leading-relaxed">
-              {localizedText((report as unknown as Record<string, unknown>).projectAnalysis, lang)}
-            </div>
-          ) : (
-            <p className="text-sm italic text-muted-foreground">{tr("noAnalysis")}</p>
-          )}
-        </Modal>
-      )}
-
-      {showCommentary && (
-        <Modal title={tr("mgmtCommentary")} onClose={() => setShowCommentary(false)} closeLabel={tr("close")}>
-          <ManagementCommentary tr={tr} lang={lang} />
-        </Modal>
-      )}
     </div>
   );
 }
 
-const tooltipStyle = {
-  background: "var(--color-popover)",
-  border: "1px solid var(--color-border)",
-  borderRadius: 8,
-  fontSize: 12,
-};
-
-function SummaryValue({ label, value, highlight = false }: { label: string; value: string; highlight?: boolean }) {
+function HeaderMeta({ label, value, icon }: { label: string; value: string; icon: ReactNode }) {
   return (
-    <div className={`rounded-lg border p-4 ${highlight ? "border-primary/30 bg-primary/10" : "border-border bg-secondary/30"}`}>
-      <p className={`text-xs uppercase tracking-wider ${highlight ? "text-primary" : "text-muted-foreground"}`}>{label}</p>
-      <p className={`mt-1 text-xl font-semibold tabular-nums ${highlight ? "text-primary" : "text-foreground"}`}>{value}</p>
+    <div className="flex min-w-36 items-center gap-3 rounded-lg border border-white/15 bg-white/10 px-4 py-3">
+      <span className="[&>svg]:h-5 [&>svg]:w-5 text-cyan-200">{icon}</span>
+      <div>
+        <p className="text-[10px] uppercase tracking-wider text-slate-300">{label}</p>
+        <p className="font-semibold tabular-nums">{value}</p>
+      </div>
     </div>
   );
 }
-
-function ManagementCommentary({ tr, lang }: { tr: (key: string) => string; lang: Lang }) {
-  const commentary = (((report as unknown as Record<string, unknown>).managementCommentary ?? {}) as Record<string, LocalizedText>);
-  const sections = [
-    { key: "overall", label: tr("mcOverall") },
-    { key: "production", label: tr("mcProduction") },
-    { key: "sales", label: tr("mcSales") },
-    { key: "inventory", label: tr("mcInventory") },
-    { key: "keyNote", label: tr("mcKeyNote") },
-  ];
-
-  if (sections.every((section) => !localizedText(commentary[section.key], lang).trim())) {
-    return <p className="text-sm italic text-muted-foreground">{tr("noCommentary")}</p>;
-  }
-
-  return (
-    <div className="space-y-3">
-      {sections.map((section) => {
-        const value = localizedText(commentary[section.key], lang).trim();
-        return (
-          <div key={section.key} className="rounded-lg border border-border bg-secondary/30 p-4">
-            <p className="mb-1.5 text-xs font-semibold uppercase tracking-wider text-primary">{section.label}</p>
-            {value ? (
-              <p className="whitespace-pre-wrap text-sm leading-relaxed">{value}</p>
-            ) : (
-              <p className="text-sm italic text-muted-foreground">{tr("noComment")}</p>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function Modal({
+function ReportSection({
   title,
-  onClose,
-  closeLabel,
+  icon,
   children,
 }: {
   title: string;
-  onClose: () => void;
-  closeLabel: string;
+  icon: ReactNode;
   children: ReactNode;
 }) {
   return (
-    <div className="no-print fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" onClick={onClose}>
-      <div
-        className="relative flex max-h-[85vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-2xl"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h3 className="text-lg font-semibold">{title}</h3>
-          <button
-            onClick={onClose}
-            className="rounded-md p-1 text-muted-foreground hover:bg-secondary hover:text-foreground"
-            aria-label={closeLabel}
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-        <div className="overflow-y-auto p-6">{children}</div>
+    <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+      <header className="flex items-center gap-3 border-b border-slate-200 bg-slate-50 px-5 py-3">
+        <span className="[&>svg]:h-4 [&>svg]:w-4 text-[#0f6f8f]">{icon}</span>
+        <h2 className="text-sm font-bold tracking-wide text-[#123b57]">{title}</h2>
+      </header>
+      <div className="p-4 md:p-5">{children}</div>
+    </section>
+  );
+}
+function Kpi({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-gradient-to-b from-white to-slate-50 p-4 text-center">
+      <p className="min-h-9 text-xs font-medium text-slate-500">{label}</p>
+      <p className="mt-2 text-2xl font-bold text-[#123b57]">{value}</p>
+    </div>
+  );
+}
+function Metric({
+  label,
+  value,
+  unit,
+  highlight = false,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  highlight?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-lg border p-4 ${highlight ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`}
+    >
+      <p className="text-xs font-medium text-slate-500">{label}</p>
+      <div className="mt-2 flex items-baseline gap-1.5">
+        <span
+          className={`text-xl font-bold tabular-nums ${highlight ? "text-emerald-700" : "text-[#123b57]"}`}
+        >
+          {value}
+        </span>
+        <span className="text-[10px] text-slate-400">{unit}</span>
       </div>
+    </div>
+  );
+}
+function SimpleData({
+  title,
+  rows,
+  good,
+}: {
+  title: string;
+  rows: (string | number)[][];
+  good?: boolean;
+}) {
+  return (
+    <section className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <h3 className="text-sm font-bold text-[#123b57]">{title}</h3>
+        {good !== undefined && (
+          <span
+            className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${good ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"}`}
+          >
+            {good ? "BALANCED" : "CHECK"}
+          </span>
+        )}
+      </div>
+      <div>
+        {rows.map((r, i) => (
+          <div
+            key={i}
+            className="flex justify-between gap-3 border-t border-slate-100 py-2 text-xs first:border-0"
+          >
+            <span className="text-slate-500">{r[0]}</span>
+            <strong className="tabular-nums">{r[1]} t</strong>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+function Chart({ height, children }: { height: number; children: ReactNode }) {
+  return (
+    <div style={{ height }}>
+      <ResponsiveContainer width="100%" height="100%">
+        {children as never}
+      </ResponsiveContainer>
+    </div>
+  );
+}
+function DataTable({
+  headers,
+  rows,
+  total,
+}: {
+  headers: string[];
+  rows: (string | number)[][];
+  total?: (string | number)[];
+}) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[680px] text-xs">
+        <thead>
+          <tr className="bg-[#123b57] text-white">
+            {headers.map((h) => (
+              <th key={h} className="whitespace-nowrap px-3 py-2.5 text-left font-semibold">
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={i} className="border-b border-slate-100 odd:bg-white even:bg-slate-50/70">
+              {r.map((v, j) => (
+                <td
+                  key={j}
+                  className={`whitespace-nowrap px-3 py-2.5 tabular-nums ${j === 0 ? "font-medium" : ""}`}
+                >
+                  {v}
+                </td>
+              ))}
+            </tr>
+          ))}
+          {total && (
+            <tr className="bg-slate-100 font-bold text-[#123b57]">
+              {total.map((v, j) => (
+                <td key={j} className="px-3 py-2.5 tabular-nums">
+                  {v}
+                </td>
+              ))}
+            </tr>
+          )}
+        </tbody>
+      </table>
     </div>
   );
 }

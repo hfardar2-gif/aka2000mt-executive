@@ -9,15 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ReportPublisherRouteImport } from './routes/report-publisher'
-import { Route as DataTransformerRouteImport } from './routes/data-transformer'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiReportDataRouteImport } from './routes/api/report-data'
+import { Route as DataTransformerRouteImport } from './routes/data-transformer'
+import { Route as ReportPublisherRouteImport } from './routes/report-publisher'
+import { Route as ApiAppAuthRouteImport } from './routes/api/app-auth'
 import { Route as ApiPublishReportRouteImport } from './routes/api/publish-report'
+import { Route as ApiReportDataRouteImport } from './routes/api/report-data'
 
-const ReportPublisherRoute = ReportPublisherRouteImport.update({
-  id: '/report-publisher',
-  path: '/report-publisher',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DataTransformerRoute = DataTransformerRouteImport.update({
@@ -25,14 +26,14 @@ const DataTransformerRoute = DataTransformerRouteImport.update({
   path: '/data-transformer',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const ReportPublisherRoute = ReportPublisherRouteImport.update({
+  id: '/report-publisher',
+  path: '/report-publisher',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiReportDataRoute = ApiReportDataRouteImport.update({
-  id: '/api/report-data',
-  path: '/api/report-data',
+const ApiAppAuthRoute = ApiAppAuthRouteImport.update({
+  id: '/api/app-auth',
+  path: '/api/app-auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublishReportRoute = ApiPublishReportRouteImport.update({
@@ -40,11 +41,17 @@ const ApiPublishReportRoute = ApiPublishReportRouteImport.update({
   path: '/api/publish-report',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiReportDataRoute = ApiReportDataRouteImport.update({
+  id: '/api/report-data',
+  path: '/api/report-data',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/data-transformer': typeof DataTransformerRoute
   '/report-publisher': typeof ReportPublisherRoute
+  '/api/app-auth': typeof ApiAppAuthRoute
   '/api/publish-report': typeof ApiPublishReportRoute
   '/api/report-data': typeof ApiReportDataRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/data-transformer': typeof DataTransformerRoute
   '/report-publisher': typeof ReportPublisherRoute
+  '/api/app-auth': typeof ApiAppAuthRoute
   '/api/publish-report': typeof ApiPublishReportRoute
   '/api/report-data': typeof ApiReportDataRoute
 }
@@ -60,6 +68,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/data-transformer': typeof DataTransformerRoute
   '/report-publisher': typeof ReportPublisherRoute
+  '/api/app-auth': typeof ApiAppAuthRoute
   '/api/publish-report': typeof ApiPublishReportRoute
   '/api/report-data': typeof ApiReportDataRoute
 }
@@ -69,6 +78,7 @@ export interface FileRouteTypes {
     | '/'
     | '/data-transformer'
     | '/report-publisher'
+    | '/api/app-auth'
     | '/api/publish-report'
     | '/api/report-data'
   fileRoutesByTo: FileRoutesByTo
@@ -76,6 +86,7 @@ export interface FileRouteTypes {
     | '/'
     | '/data-transformer'
     | '/report-publisher'
+    | '/api/app-auth'
     | '/api/publish-report'
     | '/api/report-data'
   id:
@@ -83,6 +94,7 @@ export interface FileRouteTypes {
     | '/'
     | '/data-transformer'
     | '/report-publisher'
+    | '/api/app-auth'
     | '/api/publish-report'
     | '/api/report-data'
   fileRoutesById: FileRoutesById
@@ -91,17 +103,18 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DataTransformerRoute: typeof DataTransformerRoute
   ReportPublisherRoute: typeof ReportPublisherRoute
+  ApiAppAuthRoute: typeof ApiAppAuthRoute
   ApiPublishReportRoute: typeof ApiPublishReportRoute
   ApiReportDataRoute: typeof ApiReportDataRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/report-publisher': {
-      id: '/report-publisher'
-      path: '/report-publisher'
-      fullPath: '/report-publisher'
-      preLoaderRoute: typeof ReportPublisherRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/data-transformer': {
@@ -111,18 +124,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DataTransformerRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/report-publisher': {
+      id: '/report-publisher'
+      path: '/report-publisher'
+      fullPath: '/report-publisher'
+      preLoaderRoute: typeof ReportPublisherRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/report-data': {
-      id: '/api/report-data'
-      path: '/api/report-data'
-      fullPath: '/api/report-data'
-      preLoaderRoute: typeof ApiReportDataRouteImport
+    '/api/app-auth': {
+      id: '/api/app-auth'
+      path: '/api/app-auth'
+      fullPath: '/api/app-auth'
+      preLoaderRoute: typeof ApiAppAuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/publish-report': {
@@ -132,6 +145,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublishReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/report-data': {
+      id: '/api/report-data'
+      path: '/api/report-data'
+      fullPath: '/api/report-data'
+      preLoaderRoute: typeof ApiReportDataRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -139,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DataTransformerRoute: DataTransformerRoute,
   ReportPublisherRoute: ReportPublisherRoute,
+  ApiAppAuthRoute: ApiAppAuthRoute,
   ApiPublishReportRoute: ApiPublishReportRoute,
   ApiReportDataRoute: ApiReportDataRoute,
 }
