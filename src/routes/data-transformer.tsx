@@ -1,7 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Route as DataEntryFeatureRoute } from "@/features/data-transformer-page";
-
-const DataTransformerPage = (DataEntryFeatureRoute as any).options.component;
+import { DataTransformerPage } from "@/features/data-transformer-page";
 
 export const Route = createFileRoute("/data-transformer")({
   head: () => ({
@@ -9,7 +7,8 @@ export const Route = createFileRoute("/data-transformer")({
       { title: "AKA Project Report — Live Data Entry" },
       {
         name: "description",
-        content: "Secure data entry with automatic GitHub save and Cloudflare deployment.",
+        content:
+          "Secure, validated data entry and controlled publication for the AKA management report.",
       },
     ],
   }),
