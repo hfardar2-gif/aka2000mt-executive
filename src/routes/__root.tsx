@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -170,12 +171,19 @@ function ProtectedApplication() {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const requiresAuthentication =
+    pathname === "/data-transformer" || pathname === "/report-publisher";
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppAccessGate>
+      {requiresAuthentication ? (
+        <AppAccessGate>
+          <ProtectedApplication />
+        </AppAccessGate>
+      ) : (
         <ProtectedApplication />
-      </AppAccessGate>
+      )}
     </QueryClientProvider>
   );
 }
