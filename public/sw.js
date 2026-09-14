@@ -1,4 +1,4 @@
-const CACHE_NAME = "aka-dashboard-v6";
+const CACHE_NAME = "aka-dashboard-v7";
 const APP_SHELL = [
   "/offline.html",
   "/manifest.webmanifest",
