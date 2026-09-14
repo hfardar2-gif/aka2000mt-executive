@@ -364,15 +364,19 @@ export function DataTransformerPage() {
                 />
               </div>
             </Panel>
-            <Panel title="خلاصه مالی">
-              <FixedRows
+            <Panel
+              title="خلاصه مالی"
+              description="ردیف‌های مالی را ویرایش کنید یا با دکمه افزودن ردیف، مورد جدید بسازید."
+            >
+              <ArrayEditor
                 rows={data.financial as unknown as Row[]}
-                labelKey="key"
                 columns={[
+                  { key: "key", label: "عنوان ردیف" },
                   { key: "amountRial", label: "مبلغ ریال", type: "number" },
                   { key: "note", label: "توضیح" },
                 ]}
-                onChange={(i, k, v) => setPath(["financial", i, k], v)}
+                template={{ key: "", amountRial: 0, note: "" }}
+                onUpdate={(rows) => setPath(["financial"], rows)}
               />
             </Panel>
             <Panel title="حواله‌ها و انتقال دلار">
