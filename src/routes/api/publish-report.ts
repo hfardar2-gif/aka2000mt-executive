@@ -25,6 +25,31 @@ type GitHubUpdateResponse = {
 
 const REPORT_PATH = "src/data/report.json";
 const MAX_BODY_BYTES = 2_000_000;
+const SESSION_COOKIE_NAME = "aka_app_session";
+
+const parseCookies = (header: string | null) => {
+  const cookies: Record<string, string> = {};
+  for (const part of (header ?? "").split(";")) {
+    const index = part.indexOf("=");
+    if (index < 0) continue;
+    const key = part.slice(0, index).trim();
+    const value = part.slice(index + 1).trim();
+    if (key) cookies[key] = decodeURIComponent(value);
+  }
+  return cookies;
+};
+
+const digest = async (value: string) => {
+  const bytes = new TextEncoder().encode(`aka-dashboard-session:${value}`);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return Array.from(new Uint8Array(hash), (byte) => byte.toString(16).padStart(2, "0")).join("");
+};
+
+const hasValidAppSession = async (request: Request, password: string) => {
+  const expected = await digest(password);
+  const actual = parseCookies(request.headers.get("cookie"))[SESSION_COOKIE_NAME];
+  return typeof actual === "string" && actual.length === expected.length && actual === expected;
+};
 
 const isObject = (value: unknown): value is JsonObject =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -92,13 +117,11 @@ export const Route = createFileRoute("/api/publish-report")({
           return jsonError("Invalid JSON request.", 400);
         }
 
-        // Accept the dedicated data-entry password and the main application
-        // password. This keeps existing installations working whether one or
-        // both Cloudflare secrets are configured.
-        const configuredPasswords = [
-          process.env.DATA_ENTRY_PASSWORD,
-          process.env.APP_ACCESS_PASSWORD,
-        ].filter((value): value is string => Boolean(value));
+        const appPassword = process.env.APP_ACCESS_PASSWORD;
+        const dataEntryPassword = process.env.DATA_ENTRY_PASSWORD;
+        const configuredPasswords = [dataEntryPassword, appPassword].filter(
+          (value): value is string => Boolean(value),
+        );
         if (configuredPasswords.length === 0) {
           return jsonError(
             "Neither DATA_ENTRY_PASSWORD nor APP_ACCESS_PASSWORD is configured in Cloudflare.",
@@ -106,12 +129,14 @@ export const Route = createFileRoute("/api/publish-report")({
           );
         }
 
-        if (
-          typeof body.password !== "string" ||
-          body.password.length === 0 ||
-          !configuredPasswords.includes(body.password)
-        ) {
-          return jsonError("Incorrect password.", 401);
+        const sessionAuthenticated = appPassword
+          ? await hasValidAppSession(request, appPassword)
+          : false;
+        const passwordAuthenticated =
+          typeof body.password === "string" && configuredPasswords.includes(body.password);
+
+        if (!sessionAuthenticated && !passwordAuthenticated) {
+          return jsonError("Your management session has expired. Please open this page again and sign in.", 401);
         }
 
         if (body.action === "verify") {
