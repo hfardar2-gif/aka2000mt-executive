@@ -42,7 +42,7 @@ async function callPublisher(body: unknown) {
 }
 
 export function DataTransformerPage() {
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed] = useState(true);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [data, setData] = useState<AKAProjectReport>(() => clone(reportData) as AKAProjectReport);
