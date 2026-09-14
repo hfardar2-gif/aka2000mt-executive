@@ -53,7 +53,7 @@ async function callPublisher(body: AnyObj): Promise<ApiResponse> {
 
 function ReportPublisherPage() {
   const [password, setPassword] = useState("");
-  const [authed, setAuthed] = useState(false);
+  const [authed, setAuthed] = useState(true);
   const [authenticating, setAuthenticating] = useState(false);
   const [importing, setImporting] = useState(false);
   const [publishing, setPublishing] = useState(false);
