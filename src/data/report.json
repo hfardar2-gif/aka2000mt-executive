@@ -1,5 +1,5 @@
 {
-  "reportDate": "2026-09-26",
+  "reportDate": "2026-09-27",
   "version": "07",
   "title": {
     "zh": "AKA 项目管理报告",
@@ -38,7 +38,7 @@
     "pickling": 2826.212,
     "rolling": 2376.516,
     "galvanized": 2300.656,
-    "sold": 1230.566
+    "sold": 1290.566
   },
   "warehouse": [
     {
@@ -55,7 +55,7 @@
     },
     {
       "key": "galvanized",
-      "ton": 1070.09
+      "ton": 1010.09
     }
   ],
   "scrap": [
@@ -281,11 +281,17 @@
       "buyer": "Dashtestan",
       "tonnage": 175.685,
       "amountRial": 350796340000
+    },
+    {
+      "date": "2026-09-26",
+      "buyer": "Dashtestan",
+      "tonnage": 60,
+      "amountRial": 116935000000
     }
   ],
   "transport": {
-    "underLoading": 79.694,
-    "readyInWarehouse": 1070.09
+    "underLoading": 139.694,
+    "readyInWarehouse": 1010.09
   },
   "financial": [
     {
@@ -334,8 +340,13 @@
       "note": "Transferred by Dashtestan (2026/09/15)\t"
     },
     {
+      "key": "Top ecco khavarmiane co.\t",
+      "amountRial": 200000000000,
+      "note": "Wait for confirmation"
+    },
+    {
       "key": "Remind\t",
-      "amountRial": 505811040000,
+      "amountRial": 422746040000,
       "note": "In Dashtestan Bank Account\t"
     }
   ],
@@ -411,9 +422,9 @@
     {
       "thickness": 0.4,
       "width": 1000,
-      "gradeAKg": 130055,
+      "gradeAKg": 118055,
       "gradeBCKg": 0,
-      "totalKg": 130055
+      "totalKg": 118055
     },
     {
       "thickness": 0.45,
@@ -432,23 +443,23 @@
     {
       "thickness": 0.5,
       "width": 1000,
-      "gradeAKg": 298450,
+      "gradeAKg": 273450,
       "gradeBCKg": 0,
-      "totalKg": 298450
+      "totalKg": 273450
     },
     {
       "thickness": 0.6,
       "width": 1000,
-      "gradeAKg": 231680,
+      "gradeAKg": 231684,
       "gradeBCKg": 0,
-      "totalKg": 231680
+      "totalKg": 231684
     },
     {
       "thickness": 0.7,
       "width": 1000,
-      "gradeAKg": 240345,
+      "gradeAKg": 217345,
       "gradeBCKg": 0,
-      "totalKg": 240345
+      "totalKg": 217345
     },
     {
       "thickness": 0.8,
