@@ -1,6 +1,6 @@
 {
-  "reportDate": "2026-08-22",
-  "version": "06",
+  "reportDate": "2026-09-26",
+  "version": "07",
   "title": {
     "zh": "AKA 项目管理报告",
     "en": "AKA Project Management Report",
@@ -35,27 +35,27 @@
   "totals": {
     "inputCoilsTon": 2826.212,
     "inputCoilsQty": 165,
-    "pickling": 2785.496,
-    "rolling": 2390.77,
-    "galvanized": 2185.874,
-    "sold": 1054.881
+    "pickling": 2826.212,
+    "rolling": 2376.516,
+    "galvanized": 2300.656,
+    "sold": 1230.566
   },
   "warehouse": [
     {
       "key": "unpickled",
-      "ton": 40.716
+      "ton": 0
     },
     {
       "key": "pickled",
-      "ton": 355.17
+      "ton": 410.14
     },
     {
       "key": "rolled",
-      "ton": 149.955
+      "ton": 20.919
     },
     {
       "key": "galvanized",
-      "ton": 1130.993
+      "ton": 1070.09
     }
   ],
   "scrap": [
@@ -275,16 +275,22 @@
       "buyer": "Tehran GLV Borna",
       "tonnage": 278.57,
       "amountRial": 450363975292
+    },
+    {
+      "date": "2026-09-21",
+      "buyer": "Dashtestan",
+      "tonnage": 175.685,
+      "amountRial": 350796340000
     }
   ],
   "transport": {
-    "underLoading": 0,
-    "readyInWarehouse": 1130.993
+    "underLoading": 79.694,
+    "readyInWarehouse": 1070.09
   },
   "financial": [
     {
       "key": "totalSalesCollected",
-      "amountRial": 1673298230692,
+      "amountRial": 2024094570692,
       "note": "Refer to Sales Report"
     },
     {
@@ -294,16 +300,43 @@
     },
     {
       "key": "transferChinaOffice",
-      "amountRial": 372856540000
+      "amountRial": 372856540000,
+      "note": "Table :TRANSFERS & USD REMITTANCES\t"
     },
     {
       "key": "paidMrFardar",
-      "amountRial": 3000000000
+      "amountRial": 3000000000,
+      "note": "Date: 2026/8/8\t"
     },
     {
-      "key": "remaining",
-      "amountRial": 884699052692,
-      "note": "In Dashtestan bank account"
+      "key": "Iran argo pertochemical east Asia new age aravand co, LED\t",
+      "amountRial": 200000000000,
+      "note": "Transferred by Dashtestan (2026/09/02)\t"
+    },
+    {
+      "key": "Top ecco khavarmiane co.\t",
+      "amountRial": 200000000000,
+      "note": "Transferred by Dashtestan (2026/09/06)\t"
+    },
+    {
+      "key": "Top ecco khavarmiane co.\t",
+      "amountRial": 100000000000,
+      "note": "Transferred by Dashtestan (2026/09/09)\t"
+    },
+    {
+      "key": "Top ecco khavarmiane co.\t",
+      "amountRial": 200000000000,
+      "note": "Transferred by Dashtestan (2026/09/13)\t"
+    },
+    {
+      "key": "Top ecco khavarmiane co.\t",
+      "amountRial": 29684352692,
+      "note": "Transferred by Dashtestan (2026/09/15)\t"
+    },
+    {
+      "key": "Remind\t",
+      "amountRial": 505811040000,
+      "note": "In Dashtestan Bank Account\t"
     }
   ],
   "transfers": [
@@ -367,7 +400,7 @@
       "status": "Complete at 2026-07-10"
     },
     {
-      "date": "2026-08-15",
+      "date": "2026-12-15",
       "thickness": "0.40, 0.48, 0.5, 0.8",
       "width": 1000,
       "tons": 826,
@@ -378,44 +411,44 @@
     {
       "thickness": 0.4,
       "width": 1000,
-      "gradeAKg": 83460,
+      "gradeAKg": 130055,
       "gradeBCKg": 0,
-      "totalKg": 83460
+      "totalKg": 130055
     },
     {
       "thickness": 0.45,
       "width": 1000,
-      "gradeAKg": 64135,
-      "gradeBCKg": 820,
-      "totalKg": 64955
+      "gradeAKg": 91410,
+      "gradeBCKg": 0,
+      "totalKg": 91410
     },
     {
       "thickness": 0.48,
       "width": 1000,
-      "gradeAKg": 177936,
+      "gradeAKg": 78150,
       "gradeBCKg": 0,
-      "totalKg": 177936
+      "totalKg": 78150
     },
     {
       "thickness": 0.5,
       "width": 1000,
-      "gradeAKg": 296857,
-      "gradeBCKg": 1860,
-      "totalKg": 298717
+      "gradeAKg": 298450,
+      "gradeBCKg": 0,
+      "totalKg": 298450
     },
     {
       "thickness": 0.6,
       "width": 1000,
-      "gradeAKg": 246880,
+      "gradeAKg": 231680,
       "gradeBCKg": 0,
-      "totalKg": 246880
+      "totalKg": 231680
     },
     {
       "thickness": 0.7,
       "width": 1000,
-      "gradeAKg": 259045,
+      "gradeAKg": 240345,
       "gradeBCKg": 0,
-      "totalKg": 259045
+      "totalKg": 240345
     },
     {
       "thickness": 0.8,
@@ -673,7 +706,7 @@
       "inputCoilsTon": 2073.75,
       "inputCoilsQty": 121,
       "pickling": 317.838,
-      "rolling": 221.121,
+      "rolling": 207.867,
       "galvanized": 0
     },
     {
@@ -681,9 +714,54 @@
       "date": "2026-08-08",
       "inputCoilsTon": 2073.75,
       "inputCoilsQty": 121,
-      "pickling": 0,
+      "pickling": 9,
       "rolling": 0,
       "galvanized": 46.28
+    },
+    {
+      "persianDate": "1405-06-06",
+      "date": "2026-08-28",
+      "inputCoilsTon": 2826.212,
+      "inputCoilsQty": 165,
+      "pickling": 0,
+      "rolling": 0,
+      "galvanized": 28.26
+    },
+    {
+      "persianDate": "1405-06-11",
+      "date": "2029-09-02",
+      "inputCoilsTon": 2826.212,
+      "inputCoilsQty": 165,
+      "pickling": 0,
+      "rolling": 0,
+      "galvanized": 20.2
+    },
+    {
+      "persianDate": "1405-06-19",
+      "date": "2026-09-10",
+      "inputCoilsTon": 2826.212,
+      "inputCoilsQty": 165,
+      "pickling": 0,
+      "rolling": 0,
+      "galvanized": 41.43
+    },
+    {
+      "persianDate": "1405-06-25",
+      "date": "2029-09-16",
+      "inputCoilsTon": 2826.212,
+      "inputCoilsQty": 165,
+      "pickling": 40.716,
+      "rolling": 0,
+      "galvanized": 0
+    },
+    {
+      "persianDate": "1405-06-27",
+      "date": "2026-09-18",
+      "inputCoilsTon": 2826.212,
+      "inputCoilsQty": 165,
+      "pickling": 0,
+      "rolling": 0,
+      "galvanized": 24.895
     }
   ],
   "notes": [
