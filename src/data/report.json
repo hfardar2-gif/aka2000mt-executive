@@ -1,5 +1,5 @@
 {
-  "reportDate": "2026-09-27",
+  "reportDate": "2026-09-30",
   "version": "07",
   "title": {
     "zh": "AKA 项目管理报告",
@@ -38,7 +38,7 @@
     "pickling": 2826.212,
     "rolling": 2376.516,
     "galvanized": 2300.656,
-    "sold": 1290.566
+    "sold": 1322.566
   },
   "warehouse": [
     {
@@ -55,7 +55,7 @@
     },
     {
       "key": "galvanized",
-      "ton": 1010.09
+      "ton": 977.09
     }
   ],
   "scrap": [
@@ -285,18 +285,24 @@
     {
       "date": "2026-09-26",
       "buyer": "Dashtestan",
-      "tonnage": 60,
-      "amountRial": 116935000000
+      "tonnage": 35,
+      "amountRial": 80175000000
+    },
+    {
+      "date": "2026-09-28",
+      "buyer": "Dashtestan",
+      "tonnage": 57,
+      "amountRial": 105695000000
     }
   ],
   "transport": {
-    "underLoading": 139.694,
-    "readyInWarehouse": 1010.09
+    "underLoading": 99.694,
+    "readyInWarehouse": 978.09
   },
   "financial": [
     {
       "key": "totalSalesCollected",
-      "amountRial": 2024094570692,
+      "amountRial": 2209964570692,
       "note": "Refer to Sales Report"
     },
     {
@@ -342,11 +348,21 @@
     {
       "key": "Top ecco khavarmiane co.\t",
       "amountRial": 200000000000,
-      "note": "Wait for confirmation"
+      "note": "Transferred by Dashtestan (2026/09/26)\t"
+    },
+    {
+      "key": "To buy Zink& Zamak\t",
+      "amountRial": 155000000000,
+      "note": ""
+    },
+    {
+      "key": "Top ecco khavarmiane co.\t",
+      "amountRial": 200000000000,
+      "note": "Transferred by Dashtestan (2026/09/29)\t"
     },
     {
       "key": "Remind\t",
-      "amountRial": 422746040000,
+      "amountRial": 136681040000,
       "note": "In Dashtestan Bank Account\t"
     }
   ],
@@ -422,44 +438,44 @@
     {
       "thickness": 0.4,
       "width": 1000,
-      "gradeAKg": 118055,
+      "gradeAKg": 95055,
       "gradeBCKg": 0,
-      "totalKg": 118055
+      "totalKg": 95055
     },
     {
       "thickness": 0.45,
       "width": 1000,
-      "gradeAKg": 91410,
+      "gradeAKg": 62910,
       "gradeBCKg": 0,
-      "totalKg": 91410
+      "totalKg": 62910
     },
     {
       "thickness": 0.48,
       "width": 1000,
-      "gradeAKg": 78150,
+      "gradeAKg": 72650,
       "gradeBCKg": 0,
-      "totalKg": 78150
+      "totalKg": 72650
     },
     {
       "thickness": 0.5,
       "width": 1000,
-      "gradeAKg": 273450,
+      "gradeAKg": 298450,
       "gradeBCKg": 0,
-      "totalKg": 273450
+      "totalKg": 298450
     },
     {
       "thickness": 0.6,
       "width": 1000,
-      "gradeAKg": 231684,
+      "gradeAKg": 208680,
       "gradeBCKg": 0,
-      "totalKg": 231684
+      "totalKg": 208680
     },
     {
       "thickness": 0.7,
       "width": 1000,
-      "gradeAKg": 217345,
+      "gradeAKg": 240345,
       "gradeBCKg": 0,
-      "totalKg": 217345
+      "totalKg": 240345
     },
     {
       "thickness": 0.8,
